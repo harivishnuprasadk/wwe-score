@@ -1,9 +1,12 @@
 {
-  "name": "2K23 Tag Ledger",
-  "short_name": "Tag Ledger",
+  "name": "WWE 2K23 Scoreboard",
+  "short_name": "2K23 Scoreboard",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c1124",
   "theme_color": "#141a33",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

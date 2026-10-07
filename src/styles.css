@@ -33,7 +33,7 @@ body{margin:0}
 /* password gate */
 .gate{min-height:100vh;display:grid;place-items:center;padding-inline:20px}
 .gate form{width:100%;max-width:380px;background:var(--apron);border:1px solid var(--rule);border-top:4px solid var(--ink);border-radius:6px;padding:28px 24px;display:flex;flex-direction:column;gap:14px}
-.gate h1{font-size:56px}
+.gate h1{font-size:44px;text-align:center} .gate>form>span.eyebrow{text-align:center}
 .gate input{height:46px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 12px;font-size:16px}
 .gate button{height:48px;border:0;border-radius:4px;background:var(--ink);color:var(--apron);font-family:var(--f-display);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
 .gate button:disabled{opacity:.6}
@@ -43,7 +43,7 @@ body{margin:0}
 body{background:var(--mat);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
 h1,h2{font-family:var(--f-display);text-transform:uppercase;margin:0;text-wrap:balance;line-height:.95}
-h1{font-size:clamp(44px,8vw,84px);font-weight:900;letter-spacing:.01em}
+h1{font-size:clamp(38px,7vw,76px);font-weight:900;letter-spacing:.01em}
 h2{font-size:26px;font-weight:700;letter-spacing:.02em}
 .eyebrow{font-family:var(--f-data);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
 button,select,input{font:inherit;color:inherit}
@@ -51,6 +51,11 @@ button,select,input{font:inherit;color:inherit}
 
 /* header */
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:4px solid var(--ink);padding-bottom:20px}
+header .brand{display:flex;align-items:center;gap:16px;min-width:0}
+header .logo{width:88px;height:auto;flex:none;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+header .title{min-width:0}
+.gate .logo{width:110px;height:auto;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.3);align-self:center}
+@media (max-width:560px){header .brand{gap:12px;align-items:flex-start} header .logo{width:60px;margin-top:4px}}
 .title{display:flex;flex-direction:column;gap:6px}
 h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
 .plate{background:var(--gold-plate);color:var(--gold-ink);border-radius:999px 999px 999px 999px / 60% 60% 60% 60%;padding:12px 30px;display:flex;align-items:center;gap:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.18),inset 0 0 0 7px rgba(255,255,255,.28)}
@@ -66,15 +71,18 @@ h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
 .panel-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px}
 
 /* booking form */
-.corners{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch}
-@media (max-width:560px){.corners{grid-template-columns:1fr}.vs{justify-self:center}}
+/* Corners sit side by side, and stack once the Book a match panel itself is narrow
+   (phones, or the two-column board on a smallish window). minmax(0,…) lets long team names shrink instead of overflowing. */
+.book{container-type:inline-size}
+.corners{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
+@container (max-width:600px){.corners{grid-template-columns:minmax(0,1fr)}.vs{justify-self:center}}
 .corner{border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:8px;border-top:4px solid}
 .corner.t1{background:var(--red-soft);border-color:var(--red)}
 .corner.t2{background:var(--blue-soft);border-color:var(--blue)}
 .corner .eyebrow{color:var(--ink)}
 .vs{align-self:center;font-family:var(--f-display);font-weight:900;font-size:28px;color:var(--muted)}
 .slot{display:flex;gap:6px}
-.slot select,.slot input{flex:1;min-width:0;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px}
+.slot select,.slot input{flex:1;min-width:0;width:100%;text-overflow:ellipsis;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px}
 .pick{display:flex;flex-direction:column;gap:4px}
 .slot.wr select,.slot.wr input,.slot.wr .back{height:34px;font-size:14px;color:var(--muted)}
 .team .as{font-weight:400;color:var(--muted)}
@@ -200,11 +208,9 @@ tr.lead td.rk{color:var(--gold);font-weight:700}
 .roster-form input,.roster-form select{flex:1 1 140px;min-width:0;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px}
 .roster-form .tool{height:40px}
 .roster-form .note{margin:0}
-.teamlist .x{border:0;background:none;cursor:pointer;color:var(--muted);padding:0 2px}
 .teamlist{list-style:none;margin:0;padding:0}
 .teamlist li{display:flex;align-items:center;gap:6px;padding:8px 0;border-top:1px solid var(--rule)}
 .teamlist li:first-child{border-top:0}
-.teamlist .x{margin-left:auto}
 .pick .who{font-size:13px;font-weight:600}
 td.name .nick{display:block;font-family:var(--f-display);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;color:var(--gold)}
 
@@ -241,3 +247,4 @@ td.name .nick{display:block;font-family:var(--f-display);font-weight:700;font-si
 .field.when .note{flex-basis:100%;margin:0}
 .field.when.past{padding:8px 10px;border-radius:4px;background:var(--gold-plate);color:var(--gold-ink)}
 .field.when.past .eyebrow,.field.when.past .note{color:var(--gold-ink)}
+.chip.late{background:var(--gold-plate);color:var(--gold-ink)}

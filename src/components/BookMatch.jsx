@@ -18,9 +18,9 @@ function HeadToHead({ matches, slots, date }) {
   );
 }
 
-export default function BookMatch({ matches, teams, wrestlers, slots, setSlot, setTeam, resetKey, noCount, setNoCount, onLog, saving, msg, isAdmin, pastDate, setPastDate }) {
+export default function BookMatch({ matches, teams, wrestlers, slots, setSlot, setTeam, resetKey, noCount, setNoCount, onLog, saving, msg, pastDate, setPastDate }) {
   const today = todayStr();
-  const past = isAdmin && pastDate && pastDate !== today;
+  const past = pastDate && pastDate !== today;
   // Each corner picks a team, then (optionally) the wrestler each of its two players uses.
   const corner = (side) => {
     const [k1, k2] = side === 1 ? ["a1", "a2"] : ["b1", "b2"];
@@ -46,20 +46,18 @@ export default function BookMatch({ matches, teams, wrestlers, slots, setSlot, s
     );
   };
   return (
-    <section className="panel" aria-labelledby="bookH">
+    <section className="panel book" aria-labelledby="bookH">
       <div className="panel-head">
         <h2 id="bookH">Book a match</h2>
         <span className="eyebrow">{fmtDate(past ? pastDate : today)}</span>
       </div>
-      {isAdmin && (
-        <div className={"field when" + (past ? " past" : "")}>
-          <label className="eyebrow" htmlFor="match-date">Match date · admin</label>
-          <input id="match-date" type="date" max={today} value={pastDate || today}
-            onChange={(e) => setPastDate(e.target.value === today ? "" : e.target.value)} />
-          {past && <button type="button" className="tool sm" onClick={() => setPastDate("")}>Back to today</button>}
-          {past && <p className="note">Adding a past result for {fmtDate(pastDate)}.</p>}
-        </div>
-      )}
+      <div className={"field when" + (past ? " past" : "")}>
+        <label className="eyebrow" htmlFor="match-date">Match date</label>
+        <input id="match-date" type="date" max={today} value={pastDate || today}
+          onChange={(e) => setPastDate(e.target.value === today ? "" : e.target.value)} />
+        {past && <button type="button" className="tool sm" onClick={() => setPastDate("")}>Back to today</button>}
+        {past && <p className="note">Adding a past result for {fmtDate(pastDate)}. It will show as “Added later”.</p>}
+      </div>
       <div className="corners">
         <div className="corner t1">
           <span className="eyebrow">Red corner · Team 1</span>

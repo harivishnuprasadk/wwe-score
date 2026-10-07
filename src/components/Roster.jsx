@@ -38,6 +38,38 @@ function PlayerRow({ name, alias, busy, onSave, onDelete }) {
   );
 }
 
+// Admin only: one team in the list, with Edit to rename it (change or clear the nickname) or remove it.
+function TeamRow({ team, saved, busy, onRename, onRemove }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(team.nick);
+  const [sure, setSure] = useState(false);
+  const close = () => { setOpen(false); setSure(false); };
+  const label = team.players.join(" & ");
+  return (
+    <li className={open ? "open" : ""}>
+      <div className="line">
+        <span>{team.nick && <b>{team.nick} </b>}<span className={team.nick ? "muted" : ""}>{label}</span></span>
+        <button type="button" className="tool sm" aria-expanded={open} aria-label={"Edit team " + label}
+          onClick={() => { setDraft(team.nick); open ? close() : setOpen(true); }}>{open ? "Close" : "Edit"}</button>
+      </div>
+      {open && (
+        <form className="edit" onSubmit={(e) => { e.preventDefault(); onRename(clean(draft)).then((ok) => ok && close()); }}>
+          <input type="text" placeholder="Team name (leave empty for none)" aria-label={"Team name for " + label}
+            autoComplete="off" maxLength={30} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <button className="tool" type="submit" disabled={busy}>Save</button>
+          {saved && (
+            <button className={"tool danger" + (sure ? " arm" : "")} type="button" disabled={busy}
+              onClick={() => (sure ? onRemove().then((ok) => ok && close()) : setSure(true))}>
+              {sure ? "Tap again to remove" : "Remove team"}
+            </button>
+          )}
+          <p className="note">Renaming only changes how the team is shown. Past matches and stats stay.</p>
+        </form>
+      )}
+    </li>
+  );
+}
+
 export default function Roster({ db, isAdmin, names, everyone, deleted, playerDocs, teamDocs, teams }) {
   const [player, setPlayer] = useState("");
   const [pick, setPick] = useState({ a: "", b: "", nick: "" });
@@ -92,20 +124,25 @@ export default function Roster({ db, isAdmin, names, everyone, deleted, playerDo
     if (nick.length > 30) return say("Keep the nickname to 30 characters.", "err");
     const players = byLower([pick.a, pick.b]);
     const id = teamKey(players);
-    const saved = teamDocs.find((t) => t.id === id);
     const label = players.join(" & ");
+    // Existing teams (added, or that have played) can only be renamed by the admin, from the team list.
+    if (teams.some((t) => t.key === id)) {
+      return say(`${label} is already a team.${isAdmin ? " Use Edit in the list below to rename it." : " Only the admin can rename it."}`, "err");
+    }
     return run(async () => {
-      if (saved) {
-        if ((saved.nick || "") === nick) return say(`${label} is already a team.`, "err");
-        await updateDoc(doc(db, "teams", id), { nick });
-        say(nick ? `${label} are now “${nick}”.` : `Removed the nickname for ${label}.`);
-      } else {
-        await setDoc(doc(db, "teams", id), { players, nick, createdAt: serverTimestamp() });
-        say(`Added team ${nick ? `“${nick}” (${label})` : label}.`);
-      }
+      await setDoc(doc(db, "teams", id), { players, nick, createdAt: serverTimestamp() });
+      say(`Added team ${nick ? `“${nick}” (${label})` : label}.`);
       setPick({ a: "", b: "", nick: "" });
     }, "The database refused that team. Sign out and back in, then try again.");
   }
+
+  // Admin: rename a team. One that has only played (never added) gets a record the first time.
+  const renameTeam = (team, nick) => run(async () => {
+    if (teamDocs.some((t) => t.id === team.key)) await updateDoc(doc(db, "teams", team.key), { nick });
+    else await setDoc(doc(db, "teams", team.key), { players: team.players, nick, createdAt: serverTimestamp() });
+    const label = team.players.join(" & ");
+    say(nick ? `${label} are now “${nick}”.` : `Removed the team name for ${label}.`);
+  }, "Only the admin can rename teams.");
 
   const remove = (col, id, label) => run(async () => {
     await deleteDoc(doc(db, col, id));
@@ -163,18 +200,17 @@ export default function Roster({ db, isAdmin, names, everyone, deleted, playerDo
             value={pick.nick} onChange={(e) => setPick((s) => ({ ...s, nick: e.target.value }))} />
           <button className="tool" type="submit" disabled={busy}>Save team</button>
         </div>
-        <p className="note">Pick an existing team to change or clear its nickname.</p>
+        <p className="note">{isAdmin ? "To rename a team, use Edit in the list below." : "Only the admin can rename a team once it's added."}</p>
       </form>
-      <ul className="teamlist">
-        {teams.map((t) => (
+      <ul className={isAdmin ? "plist" : "teamlist"}>
+        {teams.map((t) => (isAdmin ? (
+          <TeamRow key={t.key} team={t} saved={savedTeams.has(t.key)} busy={busy}
+            onRename={(nick) => renameTeam(t, nick)} onRemove={() => remove("teams", t.key, t.label)} />
+        ) : (
           <li key={t.key}>
             {t.nick && <b>{t.nick} </b>}<span className={t.nick ? "muted" : ""}>{t.players.join(" & ")}</span>
-            {isAdmin && savedTeams.has(t.key) && (
-              <button type="button" className="x" aria-label={"Remove team " + t.label}
-                onClick={() => remove("teams", t.key, t.label)}>✕</button>
-            )}
           </li>
-        ))}
+        )))}
         {!teams.length && <li className="empty">No teams yet. Add two players, then pair them up.</li>}
       </ul>
       <div className={"msg " + (msg?.kind || "")} role="status">{msg?.text}</div>

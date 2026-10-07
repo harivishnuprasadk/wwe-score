@@ -81,6 +81,11 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
                 {m.voided ? <span className="chip void" title={m.flag?.reason}>Voided</span>
                   : !m.counted && <span className="chip">No count</span>}
                 {m.flag && !m.voided && <span className="chip flag" title={m.flag.reason}>⚑ Flagged</span>}
+                {m.late && (
+                  <span className="chip late" title={m.ca ? "Logged on " + new Date(m.ca).toLocaleString() : "Logged after the night"}>
+                    Added later
+                  </span>
+                )}
                 {session === "all" && <span className="chip">{m.date.slice(5)}</span>}
                 <button className="rm" type="button" aria-label={`Rematch: ${t1} vs ${t2}`} onClick={() => onRematch(m)}>↻ Rematch</button>
                 {left <= 0 ? (

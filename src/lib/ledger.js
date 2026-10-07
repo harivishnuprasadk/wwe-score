@@ -89,7 +89,8 @@ export function computeStats(list) {
       t.seq.push(won ? "W" : "L");
     });
   });
-  const rank = (a, b) => b.w / (b.w + b.l) - a.w / (a.w + a.l) || b.w - a.w || a.name.localeCompare(b.name);
+  // Standings order: most wins, then fewest losses, then name. Win % alone would put a 1–0 team above a 9–2 one.
+  const rank = (a, b) => b.w - a.w || a.l - b.l || a.name.localeCompare(b.name);
   // Current run (e.g. "W3"), longest win and losing runs, and the last five results.
   const withStreak = (x) => {
     const last = x.seq[x.seq.length - 1];
@@ -148,7 +149,8 @@ export function records(list, players, teams) {
   const busy = top(teams, (t) => t.w + t.l);
   // Best win % (then most wins) among players with 3+ matches; anyone counts until someone has 3.
   const MIN = 3;
-  const best = players.find((p) => p.w + p.l >= MIN) || players[0];
+  const byPct = players.slice().sort((a, b) => b.w / (b.w + b.l) - a.w / (a.w + a.l) || b.w - a.w || a.name.localeCompare(b.name));
+  const best = byPct.find((p) => p.w + p.l >= MIN) || byPct[0];
   return {
     best: best && { name: best.name, value: `${pct(best.w, best.l)}% · ${best.w}–${best.l}` },
     teamWin: pick(tWin, tWin && "W" + tWin.best),

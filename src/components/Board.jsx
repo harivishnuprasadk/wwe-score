@@ -27,7 +27,7 @@ export default function Board({ fb, user }) {
   const [slots, setSlots] = useState(EMPTY);
   const [resetKey, setResetKey] = useState(0);
   const [noCount, setNoCount] = useState(false);
-  // Admin only: the date to log a result under. Empty means today.
+  // The date to log a result under. Empty means today; a past date is saved as "added later".
   const [pastDate, setPastDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -86,7 +86,7 @@ export default function Board({ fb, user }) {
     // Reuse the existing spelling when a typed wrestler matches a known one.
     const canonW = (n) => wrestlers.find((k) => k.toLowerCase() === n.toLowerCase()) || n;
     const today = todayStr();
-    const date = isAdmin && pastDate ? pastDate : today;
+    const date = pastDate || today;
     if (date > today) return say("That date is in the future. Pick today or an earlier date.", "err");
     const past = date !== today;
     const rec = {
@@ -98,14 +98,11 @@ export default function Board({ fb, user }) {
       wrestlers2: [canonW(v.wb1), canonW(v.wb2)],
       winner,
       counted: !noCount,
+      ...(past && { late: true }),
     };
     setSaving(true);
     try {
-      // A past result is admin-only. The rules accept it with a createdAt slightly in the past (2 minutes,
-      // to allow for clock drift), which still leaves most of the hour to delete it if it was a mistake.
-      await addDoc(collection(db, "matches"), {
-        ...rec, createdAt: past ? Timestamp.fromMillis(Date.now() - 2 * 60000) : serverTimestamp(),
-      });
+      await addDoc(collection(db, "matches"), { ...rec, createdAt: serverTimestamp() });
       fillSlots(rec);
       setNoCount(false);
       setSessionSel(rec.date);
@@ -163,7 +160,7 @@ export default function Board({ fb, user }) {
 
   function exportBackup() {
     const data = {
-      app: "tag-ledger",
+      app: "tag-ledger", // backup format id; kept so older backups and this one stay compatible
       exportedAt: new Date().toISOString(),
       matches: matches.slice().sort(byTime).map(({ ca, flag, ...m }) => ({
         ...m, createdAt: ca, ...(flag && { flag: { reason: flag.reason, at: flag.at?.toMillis?.() ?? null } }),
@@ -173,7 +170,7 @@ export default function Board({ fb, user }) {
     };
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
-    a.download = `tag-ledger-backup-${todayStr()}.json`;
+    a.download = `wwe2k23-scoreboard-backup-${todayStr()}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -190,7 +187,7 @@ export default function Board({ fb, user }) {
       list = Array.isArray(j) ? j : j.matches;
       if (!Array.isArray(list)) throw new Error();
     } catch {
-      return say("That file isn't a Tag Ledger backup. Pick a file you downloaded with Download backup.", "err");
+      return say("That file isn't a Scoreboard backup. Pick a file you downloaded with Download backup.", "err");
     }
     const have = new Set(matches.map((m) => m.id));
     const missing = list.filter((m) => m && !(m.id && have.has(String(m.id))) && m.date
@@ -239,6 +236,7 @@ export default function Board({ fb, user }) {
             winner: m.winner,
             // A voided match comes back as no-count, so it still doesn't count.
             counted: m.counted !== false && !m.voided,
+            ...(m.late === true && { late: true }),
             createdAt: Timestamp.fromMillis(Math.min(Number(m.createdAt) || lockedAt, lockedAt)),
           });
         });
@@ -259,20 +257,23 @@ export default function Board({ fb, user }) {
   return (
     <div className="wrap">
       <header>
-        <div className="title">
-          <span className="eyebrow">WWE 2K23 · PS5 · Tag team night</span>
-          <h1><span className="r">Tag</span> <span className="b">Ledger</span></h1>
-          <span className="status">{statusText}{isAdmin && <span className="badge-admin">Admin</span>}</span>
-          <div className="tools">
-            <button className="tool" type="button" onClick={exportBackup}>Download backup</button>
-            {isAdmin && (
-              <>
-                <button className="tool" type="button" onClick={() => fileRef.current?.click()}>Restore backup</button>
-                <input ref={fileRef} type="file" accept="application/json,.json" hidden
-                  onChange={(e) => { const f = e.target.files[0]; e.target.value = ""; if (f) importBackup(f); }} />
-              </>
-            )}
-            <button className="tool" type="button" onClick={() => signOut(auth)}>Sign out</button>
+        <div className="brand">
+          <img className="logo" src="/logo.webp" alt="" width="88" height="111" />
+          <div className="title">
+            <span className="eyebrow">PS5 · Tag team night</span>
+            <h1><span className="r">WWE 2K23</span> <span className="b">Scoreboard</span></h1>
+            <span className="status">{statusText}{isAdmin && <span className="badge-admin">Admin</span>}</span>
+            <div className="tools">
+              <button className="tool" type="button" onClick={exportBackup}>Download backup</button>
+              {isAdmin && (
+                <>
+                  <button className="tool" type="button" onClick={() => fileRef.current?.click()}>Restore backup</button>
+                  <input ref={fileRef} type="file" accept="application/json,.json" hidden
+                    onChange={(e) => { const f = e.target.files[0]; e.target.value = ""; if (f) importBackup(f); }} />
+                </>
+              )}
+              <button className="tool" type="button" onClick={() => signOut(auth)}>Sign out</button>
+            </div>
           </div>
         </div>
         {lead && (
@@ -301,7 +302,7 @@ export default function Board({ fb, user }) {
           <BookMatch matches={scored} teams={teamOpts} wrestlers={wrestlers} slots={slots} resetKey={resetKey}
             setSlot={(k, v) => setSlots((s) => ({ ...s, [k]: v }))} setTeam={setTeam}
             noCount={noCount} setNoCount={setNoCount} onLog={logResult} saving={saving} msg={msg}
-            isAdmin={isAdmin} pastDate={pastDate} setPastDate={setPastDate} />
+            pastDate={pastDate} setPastDate={setPastDate} />
           <MatchCard list={list} session={session} now={now} onRematch={rematch} onDelete={remove}
             flagged={flagged} isAdmin={isAdmin} onFlag={flagResult}
             onVoid={(m) => resolveFlag(m, true)} onDismiss={(m) => resolveFlag(m, false)} />

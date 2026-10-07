@@ -36,8 +36,9 @@ export default function Login({ auth, error }) {
   return (
     <div className="gate">
       <form onSubmit={submit}>
-        <span className="eyebrow">WWE 2K23 · PS5 · Tag team night</span>
-        <h1><span className="r">Tag</span> <span className="b">Ledger</span></h1>
+        <img className="logo" src="/logo.webp" alt="" width="110" height="138" />
+        <span className="eyebrow">PS5 · Tag team night</span>
+        <h1><span className="r">WWE 2K23</span> <span className="b">Scoreboard</span></h1>
         <div className="roles" role="radiogroup" aria-label="Sign in as">
           {Object.entries(ROLES).map(([k, x]) => (
             <button key={k} type="button" role="radio" aria-checked={role === k} className={role === k ? "on" : ""}

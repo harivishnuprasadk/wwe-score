@@ -16,7 +16,7 @@ await env.withSecurityRulesDisabled(async c=>{
 });
 const r=[]; const t=async(n,p)=>{ try{ await p; r.push("PASS "+n);}catch(e){ r.push("FAIL "+n+" "+e.message);} };
 await t("group creates today's match", assertSucceeds(setDoc(doc(g,"matches","n1"),{...base(today),createdAt:serverTimestamp()})));
-await t("group can't backdate a match", assertFails(setDoc(doc(g,"matches","n2"),{...base("2026-09-01"),createdAt:serverTimestamp()})));
+await t("group can't backdate without marking it late", assertFails(setDoc(doc(g,"matches","n2"),{...base("2026-09-01"),createdAt:serverTimestamp()})));
 await t("group can't fake createdAt", assertFails(setDoc(doc(g,"matches","n3"),{...base(today),createdAt:hrs(2)})));
 await t("group can't edit a score", assertFails(updateDoc(doc(g,"matches","fresh"),{winner:2})));
 await t("group can't overwrite via set", assertFails(setDoc(doc(g,"matches","fresh"),{...base(today),winner:2,createdAt:serverTimestamp()})));
@@ -41,7 +41,9 @@ await t("admin deletes a player", assertSucceeds(deleteDoc(doc(a,"players","hari
 await t("group adds a team", assertSucceeds(setDoc(doc(g,"teams","chottu+hari"),{players:["Chottu","Hari"],nick:"",createdAt:serverTimestamp()})));
 await t("team id must match players", assertFails(setDoc(doc(g,"teams","x+y"),{players:["Chottu","Sai"],nick:"",createdAt:serverTimestamp()})));
 await t("team players must be in order", assertFails(setDoc(doc(g,"teams","sai+chottu"),{players:["Sai","Chottu"],nick:"",createdAt:serverTimestamp()})));
-await t("group sets team nickname", assertSucceeds(updateDoc(doc(g,"teams","chottu+hari"),{nick:"The Bloodline"})));
+await t("group can't rename a team", assertFails(updateDoc(doc(g,"teams","chottu+hari"),{nick:"The Bloodline"})));
+await t("admin renames a team", assertSucceeds(updateDoc(doc(a,"teams","chottu+hari"),{nick:"The Bloodline"})));
+await t("admin can't change team players", assertFails(updateDoc(doc(a,"teams","chottu+hari"),{players:["Chottu","Sai"]})));
 await t("can't change team players", assertFails(updateDoc(doc(g,"teams","chottu+hari"),{players:["Chottu","Sai"]})));
 await t("stranger can't add a player", assertFails(setDoc(doc(x,"players","zed"),{name:"Zed",createdAt:serverTimestamp()})));
 await t("group edits player alias", assertSucceeds(setDoc(doc(g,"players","sai"),{name:"Sai",createdAt:serverTimestamp()}).then(()=>updateDoc(doc(g,"players","sai"),{alias:"The Viper"}))));
@@ -62,5 +64,9 @@ await t("can't flag a voided match", assertFails(updateDoc(doc(g,"matches","old"
 await t("new match can't arrive voided", assertFails(setDoc(doc(g,"matches","n8"),{...base(today),voided:true,createdAt:serverTimestamp()})));
 await t("admin adds a result for an old date", assertSucceeds(setDoc(doc(a,"matches","p1"),{...base("2026-09-01"),createdAt:Timestamp.fromMillis(Date.now()-120000)})));
 await t("admin can delete it within the hour", assertSucceeds(deleteDoc(doc(a,"matches","p1"))));
-await t("group can't add an old date even with a past createdAt", assertFails(setDoc(doc(g,"matches","p2"),{...base("2026-09-01"),createdAt:Timestamp.fromMillis(Date.now()-120000)})));
+await t("group can't fake createdAt on an old date", assertFails(setDoc(doc(g,"matches","p2"),{...base("2026-09-01"),createdAt:Timestamp.fromMillis(Date.now()-120000)})));
+await t("group adds a past result marked late", assertSucceeds(setDoc(doc(g,"matches","p3"),{...base("2026-09-01"),late:true,createdAt:serverTimestamp()})));
+await t("group deletes its late result within the hour", assertSucceeds(deleteDoc(doc(g,"matches","p3"))));
+await t("nobody can add a future match", assertFails(setDoc(doc(g,"matches","p4"),{...base("2099-01-01"),late:true,createdAt:serverTimestamp()})));
+await t("late must be true/false", assertFails(setDoc(doc(g,"matches","p5"),{...base("2026-09-01"),late:"yes",createdAt:serverTimestamp()})));
 console.log(r.join("\n")); await env.cleanup(); process.exit(r.some(x=>x.startsWith("FAIL")) ? 1 : 0);

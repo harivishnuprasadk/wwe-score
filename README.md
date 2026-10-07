@@ -1,4 +1,4 @@
-# 2K23 Tag Ledger
+# WWE 2K23 Scoreboard
 
 Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyone's phone shows live standings, streaks, records and player and team profiles.
 
@@ -35,20 +35,20 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 **Players & teams**
 - Add players by name; duplicates are blocked, ignoring capitals.
 - **Edit** a player: set an **alias** ("The Viper") or **delete** them (hidden from lists, history kept, can be restored).
-- Add a **team** from two players, with an optional **nickname** ("The Bloodline").
+- Add a **team** from two players, with an optional **nickname** ("The Bloodline"). Only the admin can rename a team afterwards.
 - Every pairing that has played before is bookable automatically.
 - Optional **wrestler** per player, from a 2K23 roster list or typed in.
 
 **Stats** (the **Showing** filter switches between one night and all dates)
-- **Top tag team** plate in the header.
-- **Teams tab:** standings with rank, **▲▼ movement** since the previous night, W–L, win %, current streak and **form trend** (last 5 compared with overall). Tap a team for its profile: longest win and losing streaks, last 5, **nemesis**, nights played, matches per night, **best night** and **worst night**.
+- **Top tag team** plate in the header: the team with the most wins (fewest losses breaks a tie).
+- **Teams tab:** standings ranked by **most wins, then fewest losses**, with rank, **▲▼ movement** since the previous night, W–L, win %, current streak and **form trend** (last 5 compared with overall). Tap a team for its profile: longest win and losing streaks, last 5, **nemesis**, nights played, matches per night, **best night** and **worst night**.
 - **Players tab:** the same table for individual players. Tap a player for their profile: **best partner**, **most-played partner**, streaks, last 5 and attendance.
 - **Records tab:** **best performer**, longest win and losing streaks (team and player), most matches, **biggest rivalry**, and the **streak breakers** log (who ended whose 2+ win streak).
 
 **Accounts and safety**
 - **Two logins:** Group (everyone) and Admin (you). Choose on the sign-in screen.
-- **Admin only:** add results for **past dates**, void or keep flagged results, restore backups, remove saved teams.
-- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, new matches must carry today's date (only the admin can add past results), and only the admin can resolve flags. See [How it works](#9-how-it-works).
+- **Admin only:** rename or remove teams, void or keep flagged results, restore backups.
+- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, results for past dates are labelled **Added later**, future dates are refused, and only the admin can resolve flags. See [How it works](#9-how-it-works).
 - **Live updates:** every phone sees new results instantly.
 - **Backups:** download all matches, players and teams as one file; restore adds back anything missing.
 - **Works like an app** when added to a phone's home screen, with light and dark mode.
@@ -197,12 +197,13 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 
 **Before the first match:**
 - **Players & teams → Add player** for each person.
-- **Add team:** pick two players and give them an optional nickname, e.g. "The Bloodline".
+- **Add team:** pick two players and give them an optional nickname, e.g. "The Bloodline". Choose it carefully: after that, only the admin can change it.
 
 **Each match:**
 1. **Book a match:** choose a team for the Red corner and one for the Blue corner.
 2. Optionally pick the wrestler each player is using.
 3. Tap **Team 1 wins** or **Team 2 wins**.
+   - **Missed logging one?** Change **Match date** at the top of Book a match to that night first. It's saved under that date with an **Added later** label. Tap **Back to today** afterwards.
 4. If you got it wrong, tap ✕ on the match within **1 hour** to delete it, then log it again. After an hour it's locked. Tap **⚑** on it to flag it for the admin instead.
 5. **↻ Rematch** sets up the same teams again.
 6. **No count** logs the match but leaves it out of the standings.
@@ -219,9 +220,8 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 
 **Admin login only** (Sign out → tap **Admin** on the sign-in screen → admin password; the header then shows an ADMIN badge):
 - **Restore backup**
-- **Adding a past result:** Book a match shows a gold **Match date · admin** box. Pick the date, choose the teams and tap the winner. The result is filed under that date and can be deleted for about an hour, then it locks. **Back to today** returns to normal. Future dates are refused.
 - Resolving flags: **Void result** (the match stays on the card, marked VOIDED, but no longer counts anywhere) or **Result stands** (removes the flag)
-- Removing a team (✕ in Players & teams). Past scores aren't affected.
+- **Renaming or removing a team:** Players & teams → **Edit** next to the team, then type a new name (or leave it empty for none) and **Save**, or **Remove team**. Past matches and stats aren't affected.
 
 ---
 
@@ -261,7 +261,7 @@ Phones signed in with the old password are signed out within about an hour and n
 | Wrong result, less than 1 hour ago | Tap ✕ on the match, then log it again |
 | Wrong result, more than 1 hour ago | Tap ⚑ to flag it with a reason. The admin then voids it (it stops counting) or lets it stand. Nobody can change the score itself |
 | Typo in a player's name | Edit → Delete the misspelled player, then add the correct name. Past matches keep the old spelling; an alias can tidy up how it's shown |
-| Wrong nickname | Add team: pick the same two players and type the new nickname, or leave it empty to remove it |
+| Wrong team name | Admin: Players & teams → **Edit** next to the team → type the new name (or leave it empty) → **Save** |
 
 ### Staying within the free plan
 
@@ -313,23 +313,23 @@ Check the app locally before deploying. Don't jump major versions (e.g. React 18
   - Scores can **never be edited**.
   - Anyone signed in can **flag** a result once, with a reason. The flag can't be overwritten and can't carry any other change.
   - Only the **admin** can resolve a flag: **void** the match (it stops counting) and/or remove the flag. Even the admin can't change a score.
-  - New matches must carry **today's date**. There's a day of slack for time zones, so yesterday is accepted but nothing older.
-  - Only the **admin** can add a result for a past date. This uses the same permission as restore: the result can be deleted within the hour, then it's locked.
+  - Anyone signed in can log a result for **today or a past date**, never a future one. A past-date result must be marked as *added later*: the app shows an **Added later** label with the real time it was logged, so backfilled results are always visible. It can be flagged like any other.
+  - The 1-hour delete window always starts when the result is **logged** (Google's clock), whatever date it's filed under.
   - **Restore** (admin only) can add matches with older dates, but only into empty slots: it can't overwrite or remove anything.
 - **Players and teams**
   - Anyone signed in can add them. Duplicates are blocked, ignoring capitals.
   - Editing a player can only change the alias and the deleted (hidden) flag. The name itself never changes, because past matches are locked with it.
-  - A team's two players can't be changed; only its nickname can.
+  - A team's two players can't be changed. Its nickname is set when it's added, and only the **admin** can change it later.
   - Only the admin can remove a team or permanently remove a player record. In the app, "Delete" just hides a player.
 - **Strangers and signed-out visitors** can't read or write anything.
 
-`tests/rules.test.mjs` has 48 tests covering all of this. Run them with `npm run test:rules`.
+`tests/rules.test.mjs` has 54 tests covering all of this. Run them with `npm run test:rules`.
 
 ### Data (Firestore collections)
 
 | Collection | Document id | Fields |
 |---|---|---|
-| `matches` | random | `date`, `t`, `team1[2]`, `team2[2]`, `wrestlers1[2]`, `wrestlers2[2]` (optional), `winner` (1/2), `counted`, `createdAt`, `flag` `{reason, at}` (optional), `voided` (optional) |
+| `matches` | random | `date`, `t`, `team1[2]`, `team2[2]`, `wrestlers1[2]`, `wrestlers2[2]` (optional), `winner` (1/2), `counted`, `createdAt`, `flag` `{reason, at}` (optional), `voided` (optional), `late` (optional, true = added after the night) |
 | `players` | lowercase name | `name`, `alias` (optional), `hidden` (optional, true = deleted), `createdAt` |
 | `teams` | `player1+player2` in lowercase | `players[2]`, `nick`, `createdAt` |
 
@@ -355,9 +355,10 @@ src/
     hooks.js              live data from the database, ticking clock
     roster.js             wrestler names offered in the picker
   styles.css
+public-assets/            logo, favicon and home-screen icons (cut from the WWE 2K23 cover), app manifest
 scripts/seed-users.mjs    creates the two local logins for dev:local
 firestore.rules           anti-cheat rules (the real enforcement)
-tests/rules.test.mjs      48 tests for those rules
+tests/rules.test.mjs      54 tests for those rules
 firebase.json             hosting, rules and emulator settings
 .firebaserc               which Firebase project this folder deploys to
 CLAUDE.md                 notes for Claude (AI assistant) when it works on this code
@@ -370,6 +371,6 @@ tag-ledger-backup-2026-10-06.json   matches from 6 Oct 2026
 |---|---|
 | `npm run dev:local` | Run the app locally with a fake database (no Firebase project needed) |
 | `npm run dev` | Run locally against the **real** database. Needs `.env.local` (copy `.env.example`; values are in Firebase console → Project settings → Your apps → Web app). Anything you log here is real |
-| `npm run test:rules` | Run the 48 anti-cheat rule tests |
+| `npm run test:rules` | Run the 54 anti-cheat rule tests |
 | `npm run build` | Build the site into `dist/` (deploy does this for you) |
 | `npm run deploy` | Build and publish the website and the database rules |
