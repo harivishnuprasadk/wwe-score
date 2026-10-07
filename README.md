@@ -47,8 +47,8 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 
 **Accounts and safety**
 - **Two logins:** Group (everyone) and Admin (you). Choose on the sign-in screen.
-- **Admin only:** void or keep flagged results, restore backups, remove saved teams.
-- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, new matches must carry today's date, and only the admin can resolve flags. See [How it works](#9-how-it-works).
+- **Admin only:** add results for **past dates**, void or keep flagged results, restore backups, remove saved teams.
+- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, new matches must carry today's date (only the admin can add past results), and only the admin can resolve flags. See [How it works](#9-how-it-works).
 - **Live updates:** every phone sees new results instantly.
 - **Backups:** download all matches, players and teams as one file; restore adds back anything missing.
 - **Works like an app** when added to a phone's home screen, with light and dark mode.
@@ -219,6 +219,7 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 
 **Admin login only** (Sign out → tap **Admin** on the sign-in screen → admin password; the header then shows an ADMIN badge):
 - **Restore backup**
+- **Adding a past result:** Book a match shows a gold **Match date · admin** box. Pick the date, choose the teams and tap the winner. The result is filed under that date and can be deleted for about an hour, then it locks. **Back to today** returns to normal. Future dates are refused.
 - Resolving flags: **Void result** (the match stays on the card, marked VOIDED, but no longer counts anywhere) or **Result stands** (removes the flag)
 - Removing a team (✕ in Players & teams). Past scores aren't affected.
 
@@ -313,6 +314,7 @@ Check the app locally before deploying. Don't jump major versions (e.g. React 18
   - Anyone signed in can **flag** a result once, with a reason. The flag can't be overwritten and can't carry any other change.
   - Only the **admin** can resolve a flag: **void** the match (it stops counting) and/or remove the flag. Even the admin can't change a score.
   - New matches must carry **today's date**. There's a day of slack for time zones, so yesterday is accepted but nothing older.
+  - Only the **admin** can add a result for a past date. This uses the same permission as restore: the result can be deleted within the hour, then it's locked.
   - **Restore** (admin only) can add matches with older dates, but only into empty slots: it can't overwrite or remove anything.
 - **Players and teams**
   - Anyone signed in can add them. Duplicates are blocked, ignoring capitals.
@@ -321,7 +323,7 @@ Check the app locally before deploying. Don't jump major versions (e.g. React 18
   - Only the admin can remove a team or permanently remove a player record. In the app, "Delete" just hides a player.
 - **Strangers and signed-out visitors** can't read or write anything.
 
-`tests/rules.test.mjs` has 45 tests covering all of this. Run them with `npm run test:rules`.
+`tests/rules.test.mjs` has 48 tests covering all of this. Run them with `npm run test:rules`.
 
 ### Data (Firestore collections)
 
@@ -355,7 +357,7 @@ src/
   styles.css
 scripts/seed-users.mjs    creates the two local logins for dev:local
 firestore.rules           anti-cheat rules (the real enforcement)
-tests/rules.test.mjs      45 tests for those rules
+tests/rules.test.mjs      48 tests for those rules
 firebase.json             hosting, rules and emulator settings
 .firebaserc               which Firebase project this folder deploys to
 CLAUDE.md                 notes for Claude (AI assistant) when it works on this code
@@ -368,6 +370,6 @@ tag-ledger-backup-2026-10-06.json   matches from 6 Oct 2026
 |---|---|
 | `npm run dev:local` | Run the app locally with a fake database (no Firebase project needed) |
 | `npm run dev` | Run locally against the **real** database. Needs `.env.local` (copy `.env.example`; values are in Firebase console → Project settings → Your apps → Web app). Anything you log here is real |
-| `npm run test:rules` | Run the 45 anti-cheat rule tests |
+| `npm run test:rules` | Run the 48 anti-cheat rule tests |
 | `npm run build` | Build the site into `dist/` (deploy does this for you) |
 | `npm run deploy` | Build and publish the website and the database rules |

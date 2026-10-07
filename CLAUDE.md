@@ -41,7 +41,7 @@ Tag Ledger: a score tracker for a friends' WWE 2K23 tag-team night. React 18 + V
   - Fields: `date, t, team1[2], team2[2], wrestlers1[2]?, wrestlers2[2]?, winner (1|2), counted, createdAt, flag? {reason, at}, voided?`.
   - Never edited. Create requires `createdAt == request.time` and today's date (±1 day). Delete only within 1 h of `createdAt`.
   - Updates allowed: a member adds `flag` once, to an unflagged, unvoided match. The admin sets `voided` and/or removes `flag`.
-  - Admin restore may create with a past `createdAt`, but only into ids that don't exist yet.
+  - Admin may create with any date and a past `createdAt`, but only into ids that don't exist yet. Restore uses this (locked straight away); the admin "Match date" backfill uses `createdAt = now - 2 min`, leaving a ~58-minute delete window.
 - **players** (id = `name.lower()`)
   - Fields: `name, alias?, hidden?, createdAt`.
   - Only `alias` and `hidden` can change, because names are baked into immutable matches. "Delete" in the UI means `hidden: true`.

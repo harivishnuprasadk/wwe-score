@@ -60,4 +60,7 @@ await t("admin can't change score while voiding", assertFails(updateDoc(doc(a,"m
 await t("admin dismisses a flag", assertSucceeds(updateDoc(doc(a,"matches","old"),{flag:deleteField()})));
 await t("can't flag a voided match", assertFails(updateDoc(doc(g,"matches","old"),{flag:{reason:"x",at:serverTimestamp()}})));
 await t("new match can't arrive voided", assertFails(setDoc(doc(g,"matches","n8"),{...base(today),voided:true,createdAt:serverTimestamp()})));
+await t("admin adds a result for an old date", assertSucceeds(setDoc(doc(a,"matches","p1"),{...base("2026-09-01"),createdAt:Timestamp.fromMillis(Date.now()-120000)})));
+await t("admin can delete it within the hour", assertSucceeds(deleteDoc(doc(a,"matches","p1"))));
+await t("group can't add an old date even with a past createdAt", assertFails(setDoc(doc(g,"matches","p2"),{...base("2026-09-01"),createdAt:Timestamp.fromMillis(Date.now()-120000)})));
 console.log(r.join("\n")); await env.cleanup(); process.exit(r.some(x=>x.startsWith("FAIL")) ? 1 : 0);

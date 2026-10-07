@@ -27,6 +27,8 @@ export default function Board({ fb, user }) {
   const [slots, setSlots] = useState(EMPTY);
   const [resetKey, setResetKey] = useState(0);
   const [noCount, setNoCount] = useState(false);
+  // Admin only: the date to log a result under. Empty means today.
+  const [pastDate, setPastDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [sessionSel, setSessionSel] = useState(null);
@@ -83,8 +85,12 @@ export default function Board({ fb, user }) {
     }
     // Reuse the existing spelling when a typed wrestler matches a known one.
     const canonW = (n) => wrestlers.find((k) => k.toLowerCase() === n.toLowerCase()) || n;
+    const today = todayStr();
+    const date = isAdmin && pastDate ? pastDate : today;
+    if (date > today) return say("That date is in the future. Pick today or an earlier date.", "err");
+    const past = date !== today;
     const rec = {
-      date: todayStr(),
+      date,
       t: Date.now(),
       team1: [v.a1, v.a2],
       team2: [v.b1, v.b2],
@@ -95,11 +101,15 @@ export default function Board({ fb, user }) {
     };
     setSaving(true);
     try {
-      await addDoc(collection(db, "matches"), { ...rec, createdAt: serverTimestamp() });
+      // A past result is admin-only. The rules accept it with a createdAt slightly in the past (2 minutes,
+      // to allow for clock drift), which still leaves most of the hour to delete it if it was a mistake.
+      await addDoc(collection(db, "matches"), {
+        ...rec, createdAt: past ? Timestamp.fromMillis(Date.now() - 2 * 60000) : serverTimestamp(),
+      });
       fillSlots(rec);
       setNoCount(false);
       setSessionSel(rec.date);
-      say(`Logged: ${rec["team" + winner].join(" & ")} win${rec.counted ? "" : " (no count)"}. You can delete it for the next hour.`);
+      say(`Logged${past ? " for " + fmtDate(date) : ""}: ${rec["team" + winner].join(" & ")} win${rec.counted ? "" : " (no count)"}. You can delete it for the next hour.`);
     } catch (err) {
       say(err?.code === "permission-denied"
         ? "The database refused that match. Sign out and back in, then try again."
@@ -290,7 +300,8 @@ export default function Board({ fb, user }) {
         <div className="col">
           <BookMatch matches={scored} teams={teamOpts} wrestlers={wrestlers} slots={slots} resetKey={resetKey}
             setSlot={(k, v) => setSlots((s) => ({ ...s, [k]: v }))} setTeam={setTeam}
-            noCount={noCount} setNoCount={setNoCount} onLog={logResult} saving={saving} msg={msg} />
+            noCount={noCount} setNoCount={setNoCount} onLog={logResult} saving={saving} msg={msg}
+            isAdmin={isAdmin} pastDate={pastDate} setPastDate={setPastDate} />
           <MatchCard list={list} session={session} now={now} onRematch={rematch} onDelete={remove}
             flagged={flagged} isAdmin={isAdmin} onFlag={flagResult}
             onVoid={(m) => resolveFlag(m, true)} onDismiss={(m) => resolveFlag(m, false)} />

@@ -237,3 +237,7 @@ td.name .nick{display:block;font-family:var(--f-display);font-weight:700;font-si
 .gate .roles button.on{background:var(--ink);color:var(--apron)}
 .gate .note{margin:0}
 .badge-admin{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:3px;background:var(--gold-plate);color:var(--gold-ink);font-family:var(--f-data);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.field.when{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.field.when .note{flex-basis:100%;margin:0}
+.field.when.past{padding:8px 10px;border-radius:4px;background:var(--gold-plate);color:var(--gold-ink)}
+.field.when.past .eyebrow,.field.when.past .note{color:var(--gold-ink)}
