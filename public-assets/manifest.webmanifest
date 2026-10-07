@@ -1,0 +1,9 @@
+{
+  "name": "2K23 Tag Ledger",
+  "short_name": "Tag Ledger",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1124",
+  "theme_color": "#141a33",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

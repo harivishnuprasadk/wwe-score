@@ -1,0 +1,24 @@
+{
+  "name": "wwe-tag-ledger",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:local": "FIREBASE_EMULATORS_PATH=.emulators firebase emulators:exec --only auth,firestore --project demo-tag-ledger \"node scripts/seed-users.mjs && VITE_EMULATORS=1 vite\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "firebase deploy",
+    "test:rules": "FIREBASE_EMULATORS_PATH=.emulators firebase emulators:exec --only firestore --project demo-tag-ledger \"node tests/rules.test.mjs\""
+  },
+  "dependencies": {
+    "firebase": "^10.14.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase-tools": "^13.35.1",
+    "vite": "^5.4.11"
+  }
+}
