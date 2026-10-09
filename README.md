@@ -40,7 +40,7 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - Optional **wrestler** per player, from a 2K23 roster list or typed in.
 
 **Stats** (the **Showing** filter switches between **All dates**, a **month** such as October 2026, or a single **night**)
-- **Top tag team** plate in the header: the team with the most wins (fewest losses breaks a tie).
+- **Top tag team** plate in the header: the team with the most wins (fewest losses breaks a tie). Beside it, a **Consolation prize** badge for the team that won the most nights, when that's a different team.
 - **Day-wise performance:** each night is a **winning day** (more wins than losses), a **losing day** (more losses) or an **even day**. Streaks count winning or losing **days** in a row, and even days are skipped.
   - **One date selected:** **Net** is that night's wins minus losses, and the **Day** column says whether it was Won, Lost or Even.
   - **A month or All dates:** Net is the running total, and **Streak** counts winning or losing days in a row (e.g. W3 = three winning nights).
@@ -48,14 +48,15 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - **Players tab:** the same table for individual players. Tap a player for their profile: **best partner**, **most-played partner**, streaks, last 2 nights, nights won by month and attendance.
 - **Award badges** (Teams and Players tables, for the period on view):
   - **🏆 Champ:** the overall winner, number 1 in the standings (most wins, then fewest losses).
-  - **★ Most nights · Consolation prize:** whoever won the most **nights** (a night is won with more wins than losses), regardless of how many matches. Ties share it. If the Champ also won the most nights, it just says ★ Most nights. It's hidden when a single night is selected.
+  - **★ Most nights:** whoever won the most **nights** (a night is won with more wins than losses), regardless of how many matches. Ties share it. It's hidden when a single night is selected.
+  - **Consolation prize** (in the header, beside the Top tag team plate): the team that won the most nights, shown when that isn't the top team.
 - **Rivalries tab:** pick **Team 1 vs Team 2** (defaults to the most-played matchup; ⇄ swaps sides) for their head-to-head in the selected dates: meetings, W–L and win % for each side, net, **nights won** by each side, **day streak** (who won the last nights they met), last 2 nights they met and last meeting. With one date selected it shows who won that night. **Player cards** show each player's record in this rivalry, their record across all matches in the selected dates, nights played and the wrestler they usually use against this team. **All matchups** lists every pairing that met; tap one to open it.
 - **Records tab:** **best performer** (best win %, at least 3 matches), **best day** (biggest single-night net, team and player), **most nights won** (team and player, not shown for a single night), most winning and losing days in a row (team and player, All dates only), most matches, **biggest rivalry**, and the **streak breakers** log (who ended a team's run of 2+ winning days).
 
 **Accounts and safety**
 - **Two logins:** Group (everyone) and Admin (you). Choose on the sign-in screen.
 - **Admin only:** rename or remove teams, void or keep flagged results, restore backups.
-- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, results for past dates are labelled **Added later**, future dates are refused, and only the admin can resolve flags. See [How it works](#9-how-it-works).
+- **Anti-cheat enforced by the database:** scores can never be edited, matches lock after an hour, results for past dates are marked as added later, future dates are refused, and only the admin can resolve flags. See [How it works](#9-how-it-works).
 - **Live updates:** every phone sees new results instantly.
 - **Backups:** download all matches, players and teams as one file; restore adds back anything missing.
 - **Works like an app** when added to a phone's home screen, with light and dark mode.
@@ -212,7 +213,7 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 1. **Book a match:** choose a team for the Red corner and one for the Blue corner.
 2. Optionally pick the wrestler each player is using.
 3. Tap **Team 1 wins** or **Team 2 wins**.
-   - **Missed logging one?** Change **Match date** at the top of Book a match to that night first. It's saved under that date with an **Added later** label. Tap **Back to today** afterwards.
+   - **Missed logging one?** Change **Match date** at the top of Book a match to that night first. It's saved under that date (marked as added later behind the scenes). Tap **Back to today** afterwards.
 4. If you got it wrong, tap ✕ on the match within **1 hour** to delete it, then log it again. After an hour it's locked. Tap **⚑** on it to flag it for the admin instead.
 5. **↻ Rematch** sets up the same teams again.
 6. **No count** logs the match but leaves it out of the standings.
@@ -323,7 +324,7 @@ Check the app locally before deploying. Don't jump major versions (e.g. React 18
   - Scores can **never be edited**.
   - Anyone signed in can **flag** a result once, with a reason. The flag can't be overwritten and can't carry any other change.
   - Only the **admin** can resolve a flag: **void** the match (it stops counting) and/or remove the flag. Even the admin can't change a score.
-  - Anyone signed in can log a result for **today or a past date**, never a future one. A past-date result must be marked as *added later*: the app shows an **Added later** label with the real time it was logged, so backfilled results are always visible. It can be flagged like any other.
+  - Anyone signed in can log a result for **today or a past date**, never a future one. A past-date result must be marked as *added later* (`late: true`), so backfilled results can always be told apart in the data. The app doesn't show a label for it. It can be flagged like any other.
   - The 1-hour delete window always starts when the result is **logged** (Google's clock), whatever date it's filed under.
   - **Restore** (admin only) can add matches with older dates, but only into empty slots: it can't overwrite or remove anything.
 - **Players and teams**

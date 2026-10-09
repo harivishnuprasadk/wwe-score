@@ -56,7 +56,7 @@ export default function BookMatch({ matches, teams, wrestlers, slots, setSlot, s
         <input id="match-date" type="date" max={today} value={pastDate || today}
           onChange={(e) => setPastDate(e.target.value === today ? "" : e.target.value)} />
         {past && <button type="button" className="tool sm" onClick={() => setPastDate("")}>Back to today</button>}
-        {past && <p className="note">Adding a past result for {fmtDate(pastDate)}. It will show as “Added later”.</p>}
+        {past && <p className="note">Adding a past result for {fmtDate(pastDate)}.</p>}
       </div>
       <div className="corners">
         <div className="corner t1">

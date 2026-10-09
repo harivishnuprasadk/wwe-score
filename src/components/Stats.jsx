@@ -6,7 +6,7 @@ import Rivalries from "./Rivalries.jsx";
 // Tables follow the date filter; tapping a row opens that team's or player's all-time profile.
 
 // Streaks and form are day-wise: a night with more wins than losses is a winning day.
-const DAYS_NOTE = "Streaks count winning (W) or losing (L) days in a row; even days are skipped. 🏆 Champ = most wins; ★ Most nights = won the most nights (a night is won with more wins than losses); it's a consolation prize unless the Champ won it too.";
+const DAYS_NOTE = "Streaks count winning (W) or losing (L) days in a row; even days are skipped. 🏆 Champ = most wins; ★ Most nights = won the most nights (a night is won with more wins than losses).";
 
 const TABS = [["teams", "Teams"], ["players", "Players"], ["records", "Records"], ["rivalries", "Rivalries"]];
 const TAB_KEY = "tag-ledger-tab";
@@ -123,10 +123,7 @@ function StatTable({ rows, first, empty, leadRow, moves, profile, single, awards
                     <span className="awards">
                       {i === 0 && <span className="award champ" title={`Overall winner · ${awards.scope}: most wins`}>🏆 Champ</span>}
                       {awards.most.names.has(x.name) && (
-                        // A consolation prize, unless the Champ also won the most nights.
-                        <span className="award nights" title={`Won the most nights · ${awards.scope}: ${awards.most.n}`}>
-                          ★ Most nights · {awards.most.n}{i !== 0 && <span className="consol">Consolation prize</span>}
-                        </span>
+                        <span className="award nights" title={`Won the most nights · ${awards.scope}: ${awards.most.n}`}>★ Most nights · {awards.most.n}</span>
                       )}
                     </span>
                   )}

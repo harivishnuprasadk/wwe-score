@@ -61,7 +61,7 @@ h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
 .plate{background:var(--gold-plate);color:var(--gold-ink);border-radius:999px 999px 999px 999px / 60% 60% 60% 60%;padding:12px 30px;display:flex;align-items:center;gap:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.18),inset 0 0 0 7px rgba(255,255,255,.28)}
 .plate .lbl{font-family:var(--f-data);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .plate .nm{font-family:var(--f-display);font-weight:900;font-size:30px;text-transform:uppercase;line-height:1}
-.plate .rec{font-family:var(--f-data);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.plate .rec{font-family:var(--f-data);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* board */
 .board{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
@@ -105,7 +105,11 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;color:var(--mut
 .scope select{height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px;font-weight:600}
 .scope .note{margin:0}
 .matches{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.match{display:grid;grid-template-columns:28px 1fr auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+/* Fixed columns so number, teams, VS and the action buttons line up from row to row. */
+.matchcard{container-type:inline-size}
+.match{display:grid;grid-template-columns:24px minmax(0,1fr) 22px minmax(0,1fr) 206px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+.match .v{text-align:center}
+.tail{flex-wrap:wrap}
 .match:first-child{border-top:0}
 .match .n{font-family:var(--f-data);color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
 .team{font-weight:500;color:var(--muted);overflow-wrap:anywhere}
@@ -129,8 +133,9 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;color:var(--mut
 .chip.lk svg{width:10px;height:10px;fill:currentColor}
 .del.arm{background:var(--bad);color:var(--apron);font-weight:600}
 .match.nc .team{text-decoration:line-through;text-decoration-color:var(--rule)}
-@media (max-width:560px){
-  .match{grid-template-columns:22px 1fr;grid-template-areas:"n a" "n b" "n tail";row-gap:4px}
+/* Narrow match card (phones, or a squeezed two-column board): stack each row. */
+@container (max-width:540px){
+  .match{grid-template-columns:22px minmax(0,1fr);grid-template-areas:"n a" "n b" "n tail";row-gap:4px}
   .match .n{grid-area:n}.match .t1{grid-area:a}.match .t2{grid-area:b;text-align:left}.match .v{display:none}.tail{grid-area:tail;justify-content:flex-start;flex-wrap:wrap;margin-top:4px}
   .team.won.t2::after{display:none}
   .team.won.t2::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:6px;vertical-align:middle}
@@ -242,11 +247,10 @@ td.name .nick{display:block;font-family:var(--f-display);font-weight:700;font-si
 .gate .roles button.on{background:var(--ink);color:var(--apron)}
 .gate .note{margin:0}
 .badge-admin{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:3px;background:var(--gold-plate);color:var(--gold-ink);font-family:var(--f-data);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-.field.when{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.field.when{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:6px 10px}
 .field.when .note{flex-basis:100%;margin:0}
 .field.when.past{padding:8px 10px;border-radius:4px;background:var(--gold-plate);color:var(--gold-ink)}
 .field.when.past .eyebrow,.field.when.past .note{color:var(--gold-ink)}
-.chip.late{background:var(--gold-plate);color:var(--gold-ink)}
 
 /* rivalries tab */
 .rivalry{display:flex;flex-direction:column;gap:16px}
@@ -279,4 +283,9 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
 .award{display:inline-block;padding:0 7px;border-radius:999px;font-family:var(--f-data);font-size:11px;font-weight:700;line-height:18px;white-space:nowrap}
 .award.champ{background:var(--gold-plate);color:var(--gold-ink)}
 .award.nights{background:var(--blue-soft);color:var(--blue)}
-.award.nights{border-radius:6px;padding:1px 7px;white-space:normal} .award .consol{display:block;font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+/* header honours: top tag team plate, with the consolation prize beside it */
+.honours{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.consolation{display:flex;flex-direction:column;gap:1px;padding:6px 12px;border-radius:8px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue);max-width:220px}
+.consolation .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.consolation .who{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
+.consolation .n{font-family:var(--f-data);font-size:12px;font-weight:600}

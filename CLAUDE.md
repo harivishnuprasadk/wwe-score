@@ -44,7 +44,7 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
 
 - **matches** (random id)
   - Fields: `date, t, team1[2], team2[2], wrestlers1[2]?, wrestlers2[2]?, winner (1|2), counted, createdAt, flag? {reason, at}, voided?, late?`.
-  - Never edited. Create requires `createdAt == request.time` and a date that isn't in the future. A date other than today (±1 day) requires `late: true`, shown as "Added later" (the user chose to let everyone backfill; keep it visible). Delete only within 1 h of `createdAt`.
+  - Never edited. Create requires `createdAt == request.time` and a date that isn't in the future. A date other than today (±1 day) requires `late: true` (the user chose to let everyone backfill; the "Added later" chip was removed from the UI at their request, but keep the field). Delete only within 1 h of `createdAt`.
   - Updates allowed: a member adds `flag` once, to an unflagged, unvoided match. The admin sets `voided` and/or removes `flag`.
   - Admin may also create with a past `createdAt` (restore only, so restored matches arrive locked), but only into ids that don't exist yet.
 - **players** (id = `name.lower()`)

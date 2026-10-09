@@ -3,7 +3,7 @@ import { signOut } from "firebase/auth";
 import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 import { ADMIN_EMAIL, LOCK_MS } from "../lib/firebase.js";
 import { useDocs, useMatches, useNow } from "../lib/hooks.js";
-import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, pct, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, scopeLabel } from "../lib/ledger.js";
+import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, pct, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, mostNights, scopeLabel } from "../lib/ledger.js";
 import { playerProfiles, rankMoves, streakBreaks, teamProfiles } from "../lib/profiles.js";
 import { ROSTER } from "../lib/roster.js";
 import BookMatch from "./BookMatch.jsx";
@@ -70,6 +70,11 @@ export default function Board({ fb, user }) {
   const allBreaks = useMemo(() => streakBreaks(scored), [scored]);
   const breaks = allBreaks.filter((b) => inScope(session, b.date));
   const lead = teams[0];
+  // Consolation prize: the team(s) that won the most nights, when that isn't the top team.
+  const consolation = useMemo(() => {
+    const m = mostNights(teams);
+    return m.n && lead && !m.names.has(lead.name) ? { n: m.n, names: [...m.names] } : null;
+  }, [teams, lead]);
 
   const say = (text, kind = "ok") => setMsg({ text, kind });
   const fillSlots = (m) => {
@@ -284,13 +289,22 @@ export default function Board({ fb, user }) {
           </div>
         </div>
         {lead && (
-          <div className="plate">
-            <div>
-              <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
-              <div className="nm">{nicks[lead.name] || lead.name}</div>
-              {nicks[lead.name] && <div className="lbl">{lead.name}</div>}
+          <div className="honours">
+            <div className="plate">
+              <div>
+                <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
+                <div className="nm">{nicks[lead.name] || lead.name}</div>
+                {nicks[lead.name] && <div className="lbl">{lead.name}</div>}
+              </div>
+              <div className="rec">{lead.w}–{lead.l} · {pct(lead.w, lead.l)}%</div>
             </div>
-            <div className="rec">{lead.w}–{lead.l} · {pct(lead.w, lead.l)}%</div>
+            {consolation && (
+              <div className="consolation" title="Won the most nights (more wins than losses on the night)">
+                <span className="lbl">★ Consolation prize</span>
+                <span className="who">{consolation.names.map((n) => nicks[n] || n).join(", ")}</span>
+                <span className="n">{consolation.n} nights won</span>
+              </div>
+            )}
           </div>
         )}
       </header>
