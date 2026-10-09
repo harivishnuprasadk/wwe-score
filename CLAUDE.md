@@ -12,6 +12,7 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
 |---|---|
 | `npm run dev:local` | App + Auth/Firestore emulators (project `demo-tag-ledger`), seeds logins `group123` / `admin123`. Data is wiped on exit. Vite on :5173, Firestore on :8080, Auth on :9099 |
 | `npm run test:rules` | Firestore rule tests (`tests/rules.test.mjs`). Needs port 8080 free, so stop `dev:local` first |
+| `npm run ship -- "msg"` | `scripts/ship.sh`: forbidden-file guard, build, rule tests (if rules changed; needs :8080 free), commit all, `firebase deploy`, then push. Commits, deploys and pushes, so only run it when the user asks; `--dry-run` is safe |
 | `npm run deploy` | Build and deploy hosting **and** rules to the real project (`.firebaserc` → `wwe-tag-ledger`). Outward-facing: only run when the user asks |
 | `npx vite build --outDir <scratch>` | Quick compile check without touching `dist/` |
 

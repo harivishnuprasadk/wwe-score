@@ -167,6 +167,20 @@ You're live.
 
 Do this every time you change the code, e.g. after asking Claude for a new feature.
 
+**One command for everything:**
+
+```
+npm run ship -- "What changed"
+```
+
+It checks that no secrets or junk files would be committed, builds the app, runs the rule tests if `firestore.rules` changed, commits with your message, deploys to Firebase and pushes to GitHub. It stops at the first problem: a broken build is never deployed, and GitHub is only updated after the deploy works. Stop `npm run dev:local` first if the rules changed, because the tests need its port. To run just the checks without committing, deploying or pushing:
+
+```
+npm run ship -- --dry-run "What changed"
+```
+
+The manual steps below do the same thing one at a time.
+
 **Saving to GitHub:** in Claude Code, type `/commit` (or `/commit push` to also upload). Claude checks the build, runs the rule tests if the rules changed, writes the commit message and keeps junk files out.
 
 1. **Check it locally:**
@@ -371,6 +385,7 @@ src/
   styles.css
 public-assets/            logo, favicon and home-screen icons (cut from the WWE 2K23 cover), app manifest
 scripts/seed-users.mjs    creates the two local logins for dev:local
+scripts/ship.sh           npm run ship: check, commit, deploy and push in one go
 firestore.rules           anti-cheat rules (the real enforcement)
 tests/rules.test.mjs      54 tests for those rules
 firebase.json             hosting, rules and emulator settings
@@ -389,3 +404,4 @@ tag-ledger-backup-2026-10-06.json   matches from 6 Oct 2026
 | `npm run test:rules` | Run the 54 anti-cheat rule tests |
 | `npm run build` | Build the site into `dist/` (deploy does this for you) |
 | `npm run deploy` | Build and publish the website and the database rules |
+| `npm run ship -- "message"` | Check, commit, deploy and push in one go (`--dry-run` to only check) |

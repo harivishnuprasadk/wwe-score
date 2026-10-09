@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "firebase deploy",
+    "ship": "bash scripts/ship.sh",
     "test:rules": "FIREBASE_EMULATORS_PATH=.emulators firebase emulators:exec --only firestore --project demo-tag-ledger \"node tests/rules.test.mjs\""
   },
   "dependencies": {
