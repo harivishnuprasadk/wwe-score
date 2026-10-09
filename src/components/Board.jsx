@@ -3,7 +3,7 @@ import { signOut } from "firebase/auth";
 import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 import { ADMIN_EMAIL, LOCK_MS } from "../lib/firebase.js";
 import { useDocs, useMatches, useNow } from "../lib/hooks.js";
-import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, pct, records, teamKey, teamOptions, todayStr, wrestlersOf } from "../lib/ledger.js";
+import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, pct, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, scopeLabel } from "../lib/ledger.js";
 import { playerProfiles, rankMoves, streakBreaks, teamProfiles } from "../lib/profiles.js";
 import { ROSTER } from "../lib/roster.js";
 import BookMatch from "./BookMatch.jsx";
@@ -49,19 +49,26 @@ export default function Board({ fb, user }) {
   const nicks = useMemo(() => nickMap(teamDocs), [teamDocs]);
   const wrestlers = useMemo(() => allWrestlers(matches, ROSTER), [matches]);
   const dates = useMemo(() => [...new Set(matches.map((m) => m.date))].sort().reverse(), [matches]);
-  const session = sessionSel === "all" || dates.includes(sessionSel) ? sessionSel : dates[0] || "all";
+  const months = useMemo(() => monthList(dates), [dates]);
+  // The "Showing" filter: all dates, a month, or one date. Defaults to the latest date.
+  const session = sessionSel === "all" || dates.includes(sessionSel) || months.includes(sessionSel) ? sessionSel : dates[0] || "all";
   const list = useMemo(
-    () => (session === "all" ? scored : scored.filter((m) => m.date === session)).slice().sort(byTime),
+    () => scored.filter((m) => inScope(session, m.date)).sort(byTime),
     [scored, session],
   );
   const { players, teams } = useMemo(() => computeStats(list), [list]);
   const recs = useMemo(() => records(list, players, teams), [list, players, teams]);
+  // Nights won per month (all matches), for the "Nights won by month" row in profiles.
+  const monthWins = useMemo(() => {
+    const all = computeStats(scored);
+    return { teams: monthlyWins(all.teams), players: monthlyWins(all.players) };
+  }, [scored]);
   // All-time views that span nights; streak breakers are then narrowed to the selected date.
   const moves = useMemo(() => rankMoves(scored), [scored]);
   const teamProf = useMemo(() => teamProfiles(scored), [scored]);
   const playerProf = useMemo(() => playerProfiles(scored), [scored]);
   const allBreaks = useMemo(() => streakBreaks(scored), [scored]);
-  const breaks = session === "all" ? allBreaks : allBreaks.filter((b) => b.date === session);
+  const breaks = allBreaks.filter((b) => inScope(session, b.date));
   const lead = teams[0];
 
   const say = (text, kind = "ok") => setMsg({ text, kind });
@@ -279,7 +286,7 @@ export default function Board({ fb, user }) {
         {lead && (
           <div className="plate">
             <div>
-              <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + fmtDate(session)}</div>
+              <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
               <div className="nm">{nicks[lead.name] || lead.name}</div>
               {nicks[lead.name] && <div className="lbl">{lead.name}</div>}
             </div>
@@ -291,10 +298,15 @@ export default function Board({ fb, user }) {
       <div className="scope">
         <label className="eyebrow" htmlFor="session">Showing</label>
         <select id="session" value={session} onChange={(e) => setSessionSel(e.target.value)}>
-          {dates.map((d) => <option key={d} value={d}>{fmtDate(d)}</option>)}
           <option value="all">All dates</option>
+          <optgroup label="Months">
+            {months.map((m) => <option key={m} value={m}>{scopeLabel(m)}</option>)}
+          </optgroup>
+          <optgroup label="Nights">
+            {dates.map((d) => <option key={d} value={d}>{fmtDate(d)}</option>)}
+          </optgroup>
         </select>
-        <span className="note">Applies to the match card, standings and records.</span>
+        <span className="note">Applies to the match card, standings, records and rivalries.</span>
       </div>
 
       <div className="board">
@@ -310,7 +322,7 @@ export default function Board({ fb, user }) {
             playerDocs={playerDocs} teamDocs={teamDocs} teams={teamOpts} />
         </div>
         <div className="col">
-          <Stats session={session} teams={teams} players={players} recs={recs} moves={moves}
+          <Stats session={session} list={list} monthWins={monthWins} teams={teams} players={players} recs={recs} moves={moves}
             teamProf={teamProf} playerProf={playerProf} breaks={breaks} nicks={nicks} aliases={aliases} />
         </div>
       </div>

@@ -39,11 +39,18 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - Every pairing that has played before is bookable automatically.
 - Optional **wrestler** per player, from a 2K23 roster list or typed in.
 
-**Stats** (the **Showing** filter switches between one night and all dates)
+**Stats** (the **Showing** filter switches between **All dates**, a **month** such as October 2026, or a single **night**)
 - **Top tag team** plate in the header: the team with the most wins (fewest losses breaks a tie).
-- **Teams tab:** standings ranked by **most wins, then fewest losses**, with rank, **▲▼ movement** since the previous night, W–L, win %, current streak and **form trend** (last 5 compared with overall). Tap a team for its profile: longest win and losing streaks, last 5, **nemesis**, nights played, matches per night, **best night** and **worst night**.
-- **Players tab:** the same table for individual players. Tap a player for their profile: **best partner**, **most-played partner**, streaks, last 5 and attendance.
-- **Records tab:** **best performer**, longest win and losing streaks (team and player), most matches, **biggest rivalry**, and the **streak breakers** log (who ended whose 2+ win streak).
+- **Day-wise performance:** each night is a **winning day** (more wins than losses), a **losing day** (more losses) or an **even day**. Streaks count winning or losing **days** in a row, and even days are skipped.
+  - **One date selected:** **Net** is that night's wins minus losses, and the **Day** column says whether it was Won, Lost or Even.
+  - **A month or All dates:** Net is the running total, and **Streak** counts winning or losing days in a row (e.g. W3 = three winning nights).
+- **Teams tab:** standings ranked by **most wins, then fewest losses**, with rank, **▲▼ movement** since the previous night, W–L, **Net**, win %, streak and **Form**: the last 2 nights as dots (green won, red lost, grey even), plus ↑ or ↓ once there are more than 2 nights, when the last-2-night win % is at least 10 points above or below overall. Form is hidden when a single night is selected. Tap a team for its profile: matches played, best and worst day streaks (most winning / losing nights in a row), last 2 nights, **nights won by month** (★ badges), **nemesis**, nights played, matches per night, **best night** and **worst night** (by net).
+- **Players tab:** the same table for individual players. Tap a player for their profile: **best partner**, **most-played partner**, streaks, last 2 nights, nights won by month and attendance.
+- **Award badges** (Teams and Players tables, for the period on view):
+  - **🏆 Champ:** the overall winner, number 1 in the standings (most wins, then fewest losses).
+  - **★ Most nights · Consolation prize:** whoever won the most **nights** (a night is won with more wins than losses), regardless of how many matches. Ties share it. If the Champ also won the most nights, it just says ★ Most nights. It's hidden when a single night is selected.
+- **Rivalries tab:** pick **Team 1 vs Team 2** (defaults to the most-played matchup; ⇄ swaps sides) for their head-to-head in the selected dates: meetings, W–L and win % for each side, net, **nights won** by each side, **day streak** (who won the last nights they met), last 2 nights they met and last meeting. With one date selected it shows who won that night. **Player cards** show each player's record in this rivalry, their record across all matches in the selected dates, nights played and the wrestler they usually use against this team. **All matchups** lists every pairing that met; tap one to open it.
+- **Records tab:** **best performer** (best win %, at least 3 matches), **best day** (biggest single-night net, team and player), **most nights won** (team and player, not shown for a single night), most winning and losing days in a row (team and player, All dates only), most matches, **biggest rivalry**, and the **streak breakers** log (who ended a team's run of 2+ winning days).
 
 **Accounts and safety**
 - **Two logins:** Group (everyone) and Admin (you). Choose on the sign-in screen.
@@ -159,6 +166,8 @@ You're live.
 
 Do this every time you change the code, e.g. after asking Claude for a new feature.
 
+**Saving to GitHub:** in Claude Code, type `/commit` (or `/commit push` to also upload). Claude checks the build, runs the rule tests if the rules changed, writes the commit message and keeps junk files out.
+
 1. **Check it locally:**
    ```
    npm run dev:local
@@ -209,10 +218,11 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 6. **No count** logs the match but leaves it out of the standings.
 
 **Stats panel:**
-- **Showing** (at the top) picks one night or **All dates**. It controls the match card, standings and records.
+- **Showing** (at the top) picks **All dates**, a **month** (every month from October 2026 to now is listed, even before anything's played in it), or one **night**. It controls the match card, standings, records and rivalries.
 - **Teams tab:** standings, ▲▼ rank movement (with All dates selected) and form. Tap a team to see its nemesis, nights played, and best and worst nights.
 - **Players tab:** player standings. Tap a player to see their best partner, most-played partner and attendance.
-- **Records tab:** best performer, longest streaks, biggest rivalry and streak breakers.
+- **Records tab:** best performer, best day, winning-day and losing-day streaks, biggest rivalry and streak breakers.
+- **Rivalries tab:** choose two teams to see their head-to-head, nights won, day streak and each player's record in that rivalry.
 
 **Players & teams → Edit** (any login): set a player's **alias** (shown as "Alias (Name)" in stats), or **Delete** them. A deleted player disappears from the team and booking lists, but their past matches and stats stay. Bring them back from **Deleted players**, or by adding the same name again.
 
@@ -240,7 +250,7 @@ Tap **Download backup** and keep the file somewhere safe, such as Google Drive. 
 | Delete window (1 hour) | `LOCK_MS` in `src/lib/firebase.js` **and** `duration.value(1, 'h')` in `firestore.rules` |
 | Login email addresses | `GROUP_EMAIL` / `ADMIN_EMAIL` in `src/lib/firebase.js` **and** `firestore.rules` **and** the users in Firebase Authentication |
 | Minimum matches for Best performer (3) | `MIN` in `records()` in `src/lib/ledger.js` |
-| Form window (last 5) | `RECENT` in `src/lib/ledger.js` |
+| Form window (last 2 nights) | `RECENT` in `src/lib/ledger.js` |
 | Colors and fonts | `src/styles.css` (top of the file) |
 
 ### Changing a password
@@ -347,11 +357,13 @@ src/
     PlayerSelect.jsx      wrestler dropdown, or type a new name
     Roster.jsx            add, edit and delete players; add teams with optional nicknames
     MatchCard.jsx         match list, rematch, 1-hour lock countdown, flags
-    Stats.jsx             Teams / Players / Records tabs, profiles, streak breakers
+    Stats.jsx             Teams / Players / Records / Rivalries tabs, profiles, streak breakers
+    Rivalries.jsx         team-vs-team head-to-head, player cards, all matchups
   lib/
     firebase.js           Firebase setup, login emails, lock length, local emulator switch
-    ledger.js             dates, standings, streaks, records, team options
+    ledger.js             dates, standings, day-wise streaks and form, records, team options
     profiles.js           all-time stats: rank moves, profiles, streak breakers
+    rivalry.js            matchups and team-vs-team head-to-head (day-wise)
     hooks.js              live data from the database, ticking clock
     roster.js             wrestler names offered in the picker
   styles.css
@@ -362,6 +374,7 @@ tests/rules.test.mjs      54 tests for those rules
 firebase.json             hosting, rules and emulator settings
 .firebaserc               which Firebase project this folder deploys to
 CLAUDE.md                 notes for Claude (AI assistant) when it works on this code
+.claude/skills/commit/    the /commit skill: checks, commits and (with "push") pushes your changes
 tag-ledger-backup-2026-10-06.json   matches from 6 Oct 2026
 ```
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LOCK_MS } from "../lib/firebase.js";
-import { fmtDate, sameBout, wrestlersOf } from "../lib/ledger.js";
+import { fmtDate, isDay, sameBout, scopeLabel, wrestlersOf } from "../lib/ledger.js";
 
 const LockIcon = () => (
   <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4.5V3a3 3 0 0 1 6 0v1.5h.5v5.5h-7V4.5zm1.5 0h3V3a1.5 1.5 0 0 0-3 0z" /></svg>
@@ -59,12 +59,15 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
     <section className="panel" aria-labelledby="cardH">
       <div className="panel-head">
         <h2 id="cardH">Match card</h2>
-        <span className="eyebrow">{session === "all" ? "All dates" : fmtDate(session)}</span>
+        <span className="eyebrow">{scopeLabel(session)}</span>
       </div>
       <Flagged flagged={flagged} isAdmin={isAdmin} onVoid={onVoid} onDismiss={onDismiss} />
       <ol className="matches">
         {!list.length && (
-          <li className="empty">No matches logged yet. Pick two teams above and tap the winning side to log the first one.</li>
+          <li className="empty">
+            {session.length === 7 ? `No matches in ${scopeLabel(session)}.`
+              : "No matches logged yet. Pick two teams above and tap the winning side to log the first one."}
+          </li>
         )}
         {list.map((m, i) => {
           const left = m.ca == null ? LOCK_MS : LOCK_MS - (now - m.ca);
@@ -86,7 +89,7 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
                     Added later
                   </span>
                 )}
-                {session === "all" && <span className="chip">{m.date.slice(5)}</span>}
+                {!isDay(session) && <span className="chip">{m.date.slice(5)}</span>}
                 <button className="rm" type="button" aria-label={`Rematch: ${t1} vs ${t2}`} onClick={() => onRematch(m)}>↻ Rematch</button>
                 {left <= 0 ? (
                   <>

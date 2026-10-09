@@ -25,7 +25,8 @@ export function rankMoves(matches) {
 function nightsOf(byDate) {
   const nights = Object.entries(byDate).map(([date, r]) => ({ date, ...r }));
   const played = nights.reduce((n, r) => n + r.w + r.l, 0);
-  const sorted = nights.slice().sort((a, b) => rate(b) - rate(a) || b.w - a.w || a.l - b.l || b.date.localeCompare(a.date));
+  // Best night = biggest net (wins minus losses), then most wins; worst night is the other end.
+  const sorted = nights.slice().sort((a, b) => b.w - b.l - (a.w - a.l) || b.w - a.w || b.date.localeCompare(a.date));
   return {
     nights: nights.length,
     perNight: nights.length ? Math.round((10 * played) / nights.length) / 10 : 0,
@@ -89,16 +90,37 @@ export function playerProfiles(matches) {
   return result;
 }
 
-// Every time a team on a winning streak of 2+ lost, and who beat them. Newest first.
+// Every time a team on a run of 2+ winning days had a losing day, and who ended it:
+// the team that beat them most that night. Even days don't count either way. Newest first.
 export function streakBreaks(matches) {
+  // Per date, per team: wins, losses, and which opponents beat them.
+  const nights = {};
+  counted(matches).forEach((m) => {
+    const n = (nights[m.date] ||= {});
+    [1, 2].forEach((side) => {
+      const name = teamName(m["team" + side]);
+      const t = (n[name] ||= { w: 0, l: 0, beatenBy: {} });
+      if (m.winner === side) t.w++;
+      else {
+        t.l++;
+        const opp = teamName(m["team" + (3 - side)]);
+        t.beatenBy[opp] = (t.beatenBy[opp] || 0) + 1;
+      }
+    });
+  });
   const run = {};
   const breaks = [];
-  counted(matches).forEach((m) => {
-    const winner = teamName(m["team" + m.winner]);
-    const loser = teamName(m["team" + (3 - m.winner)]);
-    if ((run[loser] || 0) >= 2) breaks.push({ id: m.id, date: m.date, breaker: winner, broken: loser, n: run[loser] });
-    run[loser] = 0;
-    run[winner] = (run[winner] || 0) + 1;
+  Object.keys(nights).sort().forEach((date) => {
+    Object.entries(nights[date]).forEach(([name, t]) => {
+      if (t.w > t.l) run[name] = (run[name] || 0) + 1;
+      else if (t.w < t.l) {
+        if ((run[name] || 0) >= 2) {
+          const [breaker] = Object.entries(t.beatenBy).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+          breaks.push({ id: date + "|" + name, date, breaker, broken: name, n: run[name] });
+        }
+        run[name] = 0;
+      }
+    });
   });
   return breaks.reverse();
 }

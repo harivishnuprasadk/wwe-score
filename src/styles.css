@@ -144,12 +144,12 @@ th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
 th:first-child,td:first-child{text-align:left}
 td{padding:8px;text-align:right;border-bottom:1px solid var(--rule);font-size:16px;font-weight:500}
 td.name{font-family:var(--f-body);font-weight:600;white-space:nowrap}
-tr.lead td.name::after{content:"Champ";margin-left:8px;font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--gold-plate);color:var(--gold-ink);padding:2px 6px;border-radius:3px;vertical-align:middle}
 .strk.w{color:var(--good)} .strk.l{color:var(--bad)}
 .note{font-size:13px;color:var(--muted)}
 .form{display:inline-flex;gap:3px;vertical-align:middle}
 .form i{width:8px;height:8px;border-radius:50%}
-.form i.w{background:var(--good)} .form i.l{background:var(--bad)}
+.form i.w{background:var(--good)} .form i.l{background:var(--bad)} .form i.e{background:var(--rule)}
+td.net{font-weight:700} td.net.w{color:var(--good)} td.net.l{color:var(--bad)}
 .recs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .rec-tile{border:1px solid var(--rule);border-left:4px solid var(--gold);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .rec-tile.w{border-left-color:var(--good)} .rec-tile.l{border-left-color:var(--bad)}
@@ -183,7 +183,7 @@ table.stat td.rk{text-align:left;color:var(--muted);white-space:nowrap;font-size
 .rowbtn::after{content:"\00a0▸";color:var(--muted);font-size:12px}
 .rowbtn[aria-expanded=true]::after{content:"\00a0▾"}
 tr.open td{border-bottom-color:transparent}
-tr.detail td{text-align:left;background:var(--mat);padding:12px}
+tr.detail td{text-align:left;background:var(--mat);padding:12px;white-space:normal}
 .trend{white-space:nowrap;font-weight:700} .trend.up{color:var(--good)} .trend.down{color:var(--bad)} .trend.flat{color:var(--muted)}
 .trend .tw{font-weight:500;color:var(--muted);font-size:13px}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 16px;margin:0}
@@ -197,7 +197,6 @@ table.stat th,table.stat td{white-space:nowrap}
 table.stat th:nth-child(2),table.stat td.name{text-align:left;white-space:normal}
 tr.lead td.rk{color:var(--gold);font-weight:700}
 @media (max-width:560px){
-  tr.lead td.name::after{display:none}
   .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
@@ -248,3 +247,36 @@ td.name .nick{display:block;font-family:var(--f-display);font-weight:700;font-si
 .field.when.past{padding:8px 10px;border-radius:4px;background:var(--gold-plate);color:var(--gold-ink)}
 .field.when.past .eyebrow,.field.when.past .note{color:var(--gold-ink)}
 .chip.late{background:var(--gold-plate);color:var(--gold-ink)}
+
+/* rivalries tab */
+.rivalry{display:flex;flex-direction:column;gap:16px}
+.rv-pick{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
+.rv-pick select{width:100%;min-width:0;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 8px;border-top:3px solid;text-overflow:ellipsis}
+.rv-pick select.t1{border-top-color:var(--red)} .rv-pick select.t2{border-top-color:var(--blue)}
+.rv-score{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;text-align:center;padding:12px;border-radius:6px;background:var(--mat)}
+.rv-score .side{display:flex;flex-direction:column;align-items:center;min-width:0}
+.rv-score .who{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.rv-score .big{font-family:var(--f-display);font-weight:900;font-size:56px;line-height:1}
+.rv-score .t1 .big{color:var(--red)} .rv-score .t2 .big{color:var(--blue)}
+.rv-score .mid{display:flex;flex-direction:column;align-items:center;gap:2px}
+.rv-score .mid .vs{font-size:22px}
+.rivalry dd .r{color:var(--red);font-weight:700} .rivalry dd .b{color:var(--blue);font-weight:700}
+.rv-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rv-player{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:4px;border-left:4px solid;background:var(--mat);font-size:14px;min-width:0}
+.rv-player.t1{border-left-color:var(--red)} .rv-player.t2{border-left-color:var(--blue)}
+.rv-list{list-style:none;margin:0;padding:0}
+.rv-list button{width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;text-align:left;border:0;border-top:1px solid var(--rule);background:none;padding:8px 4px;cursor:pointer;font:inherit;color:inherit}
+.rv-list li:first-child button{border-top:0}
+.rv-list button.on{background:var(--mat);font-weight:600}
+@media (max-width:560px){.tabs button{font-size:15px;padding:10px 4px}}
+td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
+@media (max-width:560px){.form{gap:2px} .form i{width:7px;height:7px}}
+.mbadge{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--gold-plate);color:var(--gold-ink);
+  font-family:var(--f-data);font-size:11px;font-weight:700;line-height:18px;white-space:nowrap;vertical-align:middle}
+.mbadges{display:flex;flex-wrap:wrap;gap:4px} .mbadges .mbadge{margin-left:0}
+.facts dt{overflow-wrap:anywhere}
+.awards{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.award{display:inline-block;padding:0 7px;border-radius:999px;font-family:var(--f-data);font-size:11px;font-weight:700;line-height:18px;white-space:nowrap}
+.award.champ{background:var(--gold-plate);color:var(--gold-ink)}
+.award.nights{background:var(--blue-soft);color:var(--blue)}
+.award.nights{border-radius:6px;padding:1px 7px;white-space:normal} .award .consol{display:block;font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;opacity:.85}

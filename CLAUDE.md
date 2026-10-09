@@ -25,12 +25,17 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
   - `scored`: matches with voided ones turned into `counted: false`.
   - `list`: the date filter applied to `scored`.
   - Stats via `computeStats`, `records` and `profiles.js`.
-- `src/lib/ledger.js`: pure stats helpers (standings, streaks, trend, records, team options). `src/lib/profiles.js`: all-time, cross-night stats (rank moves, profiles, streak breakers). Both take match arrays and have no React or Firebase imports, so they can be tested with `node --input-type=module -e`.
+- `src/lib/ledger.js`: pure stats helpers (standings, streaks, trend, records, team options).
+  - **Date filter (`session`)** is `"all"`, a month `"YYYY-MM"` or a day `"YYYY-MM-DD"`. Use `inScope` / `isDay` / `scopeLabel` from ledger.js, never `session === "all"` checks for filtering. A month behaves like all dates (multi-day); rank movement (▲▼) stays all-dates only.
+  - **Stats are day-wise** (user's choice, 2026-10-08): `computeStats` groups each team's and player's matches by date. A day is W (more wins than losses), L (more losses) or E (even). Streaks and best/worst runs count W/L days and **skip E days**; form and trend use the last `RECENT` (= 2, user's choice) days; `net = w - l`; `bestDay` is the biggest single-night net. With one date selected the same code describes that single day.
+  - **Awards:** 🏆 Champ = rank 1 (most wins); ★ Most nights = `mostNights()` (most `nightsWon` in the filtered list, ties shared, hidden with under 2 nights). Shown in the tables and as Records tiles. `monthlyWins()` feeds only the profiles' "Nights won by month" row.
+  - **Not day-wise, by choice:** ranking (most wins, then fewest losses) and Best performer (win %, at least 3 matches). Streak breakers (`profiles.js`) are also day-based: a 2+ winning-day run ended by a losing day, credited to the opponent who beat them most that night. `src/lib/profiles.js`: all-time, cross-night stats (rank moves, profiles, streak breakers). Both take match arrays and have no React or Firebase imports, so they can be tested with `node --input-type=module -e`.
 - Components:
   - `BookMatch`: team pickers, wrestler pickers, head-to-head.
   - `MatchCard`: list, delete window, flag button, flagged-results box.
   - `Roster`: add/edit/delete players, add teams with nicknames, admin-only team rename/remove (`TeamRow`).
-  - `Stats`: Teams / Players / Records tabs, expandable profiles.
+  - `Stats`: Teams / Players / Records / Rivalries tabs, expandable profiles.
+  - `Rivalries` + `lib/rivalry.js`: exact team-vs-team head-to-head over the filtered `list`, day-wise (nights they met won/lost/even, `dayStreaks` from team A's side). Player stats cover only these exact teams (user's choice). `records()` reuses `matchups()` for Biggest rivalry. Note `ledger.js` ↔ `rivalry.js` import each other; that's safe only while both use the other's exports at call time, not at module load.
   - `Login`: Group/Admin switch.
   - `PlayerSelect`: now only the wrestler dropdown.
 - Stats are computed client-side from all matches on each load; nothing derived is stored.
@@ -57,6 +62,10 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
 - the README data table.
 
 The live rules must be deployed with the app, or writes get refused.
+
+## Committing
+
+Use the project skill `.claude/skills/commit/SKILL.md` (`/commit`, or `/commit push`). Only commit or push when the user asks.
 
 ## Verifying changes
 
