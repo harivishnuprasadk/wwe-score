@@ -5,6 +5,7 @@
   --red:#c32530; --red-soft:#fbe7e8; --blue:#1f4fd1; --blue-soft:#e6ecfc;
   --gold:#9a6f00; --gold-plate:#f3d77a; --gold-ink:#3b2a00;
   --good:#1d7a45; --bad:#b4232c;
+  --chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235a6280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   --f-display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --f-body:"Barlow", "Segoe UI", system-ui, sans-serif;
   --f-data:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
@@ -16,6 +17,7 @@
     --red:#ff6168; --red-soft:#3a1a24; --blue:#7b9dff; --blue-soft:#1a2550;
     --gold:#e8b931; --gold-plate:#c99a1c; --gold-ink:#1b1300;
     --good:#4cc784; --bad:#ff6b72;
+    --chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa2c2' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
 :root[data-theme="dark"]{
@@ -24,6 +26,7 @@
   --red:#ff6168; --red-soft:#3a1a24; --blue:#7b9dff; --blue-soft:#1a2550;
   --gold:#e8b931; --gold-plate:#c99a1c; --gold-ink:#1b1300;
   --good:#4cc784; --bad:#ff6b72;
+  --chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa2c2' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -305,3 +308,7 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
 .showmenu .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:240px;background:var(--apron);border:1px solid var(--rule);border-radius:6px;
   box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px 12px;display:flex;flex-direction:column;gap:6px}
 .showmenu .menu label.chk{color:var(--ink);font-size:14px}
+/* Dropdowns: one consistent arrow with room around it, instead of each browser's own arrow tight against the edge.
+   Kept last so it wins over the per-component select rules (same specificity). */
+select:not([multiple]){appearance:none;-webkit-appearance:none;background-image:var(--chevron);background-repeat:no-repeat;
+  background-position:right 12px center;background-size:12px 8px;padding-right:36px}
