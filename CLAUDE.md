@@ -32,7 +32,7 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
   - **Not day-wise, by choice:** ranking (most wins, then fewest losses) and Best performer (win %, at least 3 matches). Streak breakers (`profiles.js`) are also day-based: a 2+ winning-day run ended by a losing day, credited to the opponent who beat them most that night. `src/lib/profiles.js`: all-time, cross-night stats (rank moves, profiles, streak breakers). Both take match arrays and have no React or Firebase imports, so they can be tested with `node --input-type=module -e`.
 - Components:
   - `BookMatch`: team pickers, wrestler pickers, head-to-head.
-  - `MatchCard`: list, delete window, flag button, flagged-results box.
+  - `MatchCard`: list, delete window, flag button, flagged-results box. Row extras (rematch, lock status, flag, tags) are hidden by default behind a **Show ▾** checkbox menu (user's request, saved in localStorage `matchcard-show`). ✕ delete always shows in the first hour. Rows share columns via CSS subgrid where supported.
   - `Roster`: add/edit/delete players, add teams with nicknames, admin-only team rename/remove (`TeamRow`).
   - `Stats`: Teams / Players / Records / Rivalries tabs, expandable profiles.
   - `Rivalries` + `lib/rivalry.js`: exact team-vs-team head-to-head over the filtered `list`, day-wise (nights they met won/lost/even, `dayStreaks` from team A's side). Player stats cover only these exact teams (user's choice). `records()` reuses `matchups()` for Biggest rivalry. Note `ledger.js` ↔ `rivalry.js` import each other; that's safe only while both use the other's exports at call time, not at module load.

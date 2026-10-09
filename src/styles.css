@@ -107,9 +107,15 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;color:var(--mut
 .matches{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 /* Fixed columns so number, teams, VS and the action buttons line up from row to row. */
 .matchcard{container-type:inline-size}
-.match{display:grid;grid-template-columns:24px minmax(0,1fr) 22px minmax(0,1fr) 206px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+.match{display:grid;grid-template-columns:24px minmax(0,1fr) 22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+/* Where supported, rows share one set of columns (subgrid), so the action column is only as wide as what's switched on. */
+@supports (grid-template-columns:subgrid){
+  .matches{display:grid;grid-template-columns:24px minmax(0,1fr) 22px minmax(0,1fr) auto;column-gap:10px}
+  .matches>.match{grid-column:1/-1;grid-template-columns:subgrid}
+  .matches>.empty{grid-column:1/-1}
+}
 .match .v{text-align:center}
-.tail{flex-wrap:wrap}
+.tail{flex-wrap:wrap;max-width:220px;justify-self:end}
 .match:first-child{border-top:0}
 .match .n{font-family:var(--f-data);color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
 .team{font-weight:500;color:var(--muted);overflow-wrap:anywhere}
@@ -135,7 +141,9 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;color:var(--mut
 .match.nc .team{text-decoration:line-through;text-decoration-color:var(--rule)}
 /* Narrow match card (phones, or a squeezed two-column board): stack each row. */
 @container (max-width:540px){
-  .match{grid-template-columns:22px minmax(0,1fr);grid-template-areas:"n a" "n b" "n tail";row-gap:4px}
+  .matches{display:flex}
+  .matches>.match{grid-template-columns:22px minmax(0,1fr);grid-template-areas:"n a" "n b" "n tail";row-gap:4px}
+  .tail:empty{display:none}
   .match .n{grid-area:n}.match .t1{grid-area:a}.match .t2{grid-area:b;text-align:left}.match .v{display:none}.tail{grid-area:tail;justify-content:flex-start;flex-wrap:wrap;margin-top:4px}
   .team.won.t2::after{display:none}
   .team.won.t2::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:6px;vertical-align:middle}
@@ -289,3 +297,11 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
 .consolation .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .consolation .who{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
 .consolation .n{font-family:var(--f-data);font-size:12px;font-weight:600}
+/* Match card "Show" menu */
+.head-right{display:flex;align-items:center;gap:10px}
+.showmenu{position:relative}
+.showmenu summary{list-style:none;cursor:pointer;user-select:none}
+.showmenu summary::-webkit-details-marker{display:none}
+.showmenu .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:240px;background:var(--apron);border:1px solid var(--rule);border-radius:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.showmenu .menu label.chk{color:var(--ink);font-size:14px}

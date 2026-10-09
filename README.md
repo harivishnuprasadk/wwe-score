@@ -214,8 +214,9 @@ Phones pick up the new version the next time the page is opened or refreshed. On
 2. Optionally pick the wrestler each player is using.
 3. Tap **Team 1 wins** or **Team 2 wins**.
    - **Missed logging one?** Change **Match date** at the top of Book a match to that night first. It's saved under that date (marked as added later behind the scenes). Tap **Back to today** afterwards.
-4. If you got it wrong, tap ✕ on the match within **1 hour** to delete it, then log it again. After an hour it's locked. Tap **⚑** on it to flag it for the admin instead.
+4. If you got it wrong, tap ✕ on the match within **1 hour** to delete it, then log it again. After an hour it's locked: turn on **Flag button** under **Show ▾**, then tap **⚑** on it to flag it for the admin.
 5. **↻ Rematch** sets up the same teams again.
+   - The Match card shows just the teams by default. Tap **Show ▾** (top right of the Match card) and tick what you want in each row: **Rematch button**, **Lock status** (minutes left or Locked), **Flag button ⚑**, **Tags** (Rematch, No count, Flagged, Voided, date). Each phone remembers its own choice. The ✕ delete button always shows during a match's first hour.
 6. **No count** logs the match but leaves it out of the standings.
 
 **Stats panel:**
