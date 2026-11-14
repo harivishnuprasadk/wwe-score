@@ -62,6 +62,26 @@ header .title{min-width:0}
 .title{display:flex;flex-direction:column;gap:6px}
 h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
 .plate{background:var(--gold-plate);color:var(--gold-ink);border-radius:999px 999px 999px 999px / 60% 60% 60% 60%;padding:12px 30px;display:flex;align-items:center;gap:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.18),inset 0 0 0 7px rgba(255,255,255,.28)}
+.plate{position:relative;overflow:hidden;isolation:isolate}
+.plate > :not(.confetti){position:relative;z-index:1}
+.confetti{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .confetti{display:block;position:absolute;inset:0;z-index:0;pointer-events:none}
+  .confetti i{position:absolute;top:-14px;width:7px;height:9px;border-radius:1px;opacity:.85;animation:confetti-fall linear infinite}
+  .confetti i.strip{width:4px;height:12px}
+  .confetti .cr{background:var(--red)} .confetti .cb{background:var(--blue)}
+  .confetti .cw{background:#fff} .confetti .ci{background:var(--gold-ink);opacity:.5}
+  .confetti .shine{position:absolute;top:0;bottom:0;width:40%;left:-60%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);animation:plate-shine 3.5s ease-in-out infinite}
+}
+@keyframes confetti-fall{
+  0%{transform:translate(0,0) rotate(0deg)}
+  25%{transform:translate(8px,25px) rotate(120deg)}
+  50%{transform:translate(-6px,50px) rotate(240deg)}
+  75%{transform:translate(6px,75px) rotate(330deg)}
+  100%{transform:translate(-4px,110px) rotate(440deg)}
+}
+@keyframes plate-shine{0%{left:-60%}55%,100%{left:130%}}
 .plate .lbl{font-family:var(--f-data);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .plate .nm{font-family:var(--f-display);font-weight:900;font-size:30px;text-transform:uppercase;line-height:1}
 .plate .rec{font-family:var(--f-data);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}

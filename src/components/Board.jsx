@@ -16,6 +16,25 @@ const PLAYERS = ["a1", "a2", "b1", "b2"];
 const EMPTY = { a1: "", a2: "", b1: "", b2: "", wa1: "", wa2: "", wb1: "", wb2: "" };
 const clean = (s) => s.trim().replace(/\s+/g, " ");
 
+// Celebration on the gold plate: confetti drifting behind the champion's name. Fixed positions and
+// timings (not random) so it doesn't jump on every re-render. Pure CSS; hidden for reduced motion.
+const CONFETTI = [
+  [6, 0, 3.6, "r"], [14, 1.4, 4.2, "b"], [22, 0.6, 3.2, "w"], [30, 2.2, 4.6, "i"], [38, 0.9, 3.8, "r"],
+  [46, 2.8, 3.4, "b"], [54, 0.3, 4.4, "w"], [62, 1.8, 3.6, "r"], [70, 3.1, 4.0, "i"], [78, 1.1, 3.3, "b"],
+  [86, 2.5, 4.3, "w"], [94, 0.5, 3.9, "r"],
+];
+function Confetti() {
+  return (
+    <span className="confetti" aria-hidden="true">
+      {CONFETTI.map(([x, d, t, c], i) => (
+        <i key={i} className={"c" + c + (i % 3 === 0 ? " strip" : "")}
+          style={{ left: x + "%", animationDelay: d + "s", animationDuration: t + "s" }} />
+      ))}
+      <b className="shine" />
+    </span>
+  );
+}
+
 export default function Board({ fb, user }) {
   const { db, auth } = fb;
   const isAdmin = user.email === ADMIN_EMAIL;
@@ -291,6 +310,7 @@ export default function Board({ fb, user }) {
         {lead && (
           <div className="honours">
             <div className="plate">
+              <Confetti />
               <div>
                 <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
                 <div className="nm">{nicks[lead.name] || lead.name}</div>
