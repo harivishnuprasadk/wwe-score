@@ -26,6 +26,7 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 
 **Logging matches**
 - **Book a match:** choose a team for the Red corner and the Blue corner, optionally pick each player's wrestler, then tap the winning side.
+- **Team picker:** tap it and type to search by nickname or player name. The most played teams are listed first, with how many matches each has played.
 - **Head to head:** shows today's and all-time record between the two teams before you log.
 - **No count:** log a match that's left out of the standings, e.g. a warm-up.
 - **Rematch:** one tap sets up the same teams again.

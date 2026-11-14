@@ -51,18 +51,21 @@ export function allNames(matches, extra = []) {
 export const byLower = (players) => [...players].sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1));
 
 // Teams you can book: every added team, plus every pairing that has played before.
-// Each is { key, players, nick, label } with players in the same order as the team's id.
+// Each is { key, players, nick, label, played } with players in the same order as the team's id;
+// played counts every match the pairing was in (no-count ones too), for "most played first" pickers.
 export function teamOptions(matches, teamDocs) {
   const byKey = {};
+  const played = {};
   const add = (players, nick = "") => {
     const sorted = byLower(players);
     const key = teamKey(sorted);
     if (!byKey[key] || nick) byKey[key] = { key, players: sorted, nick };
+    return key;
   };
-  matches.forEach((m) => { add(m.team1); add(m.team2); });
+  matches.forEach((m) => [m.team1, m.team2].forEach((t) => { const k = add(t); played[k] = (played[k] || 0) + 1; }));
   teamDocs.forEach((t) => add(t.players, t.nick || ""));
   return Object.values(byKey)
-    .map((t) => ({ ...t, label: (t.nick ? t.nick + " · " : "") + t.players.join(" & ") }))
+    .map((t) => ({ ...t, label: (t.nick ? t.nick + " · " : "") + t.players.join(" & "), played: played[t.key] || 0 }))
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 

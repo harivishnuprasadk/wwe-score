@@ -1,4 +1,5 @@
 import PlayerSelect from "./PlayerSelect.jsx";
+import TeamPicker from "./TeamPicker.jsx";
 import { fmtDate, headToHead, teamKey, todayStr } from "../lib/ledger.js";
 
 function HeadToHead({ matches, slots, date }) {
@@ -27,13 +28,8 @@ export default function BookMatch({ matches, teams, wrestlers, slots, setSlot, s
     const value = slots[k1] && slots[k2] ? teamKey([slots[k1], slots[k2]]) : "";
     return (
       <>
-        <div className="slot">
-          <select id={"team-" + side} aria-label={`Team ${side}`} value={value}
-            onChange={(e) => setTeam(side, teams.find((t) => t.key === e.target.value))}>
-            <option value="">Choose team…</option>
-            {teams.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-          </select>
-        </div>
+        <TeamPicker id={"team-" + side} label={`Team ${side}`} teams={teams} value={value}
+          onChange={(t) => setTeam(side, t)} />
         {value && [k1, k2].map((k) => (
           <div key={k} className="pick">
             <span className="who">{slots[k]}</span>

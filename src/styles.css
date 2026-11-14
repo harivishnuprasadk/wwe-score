@@ -87,6 +87,22 @@ h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
 .slot{display:flex;gap:6px}
 .slot select,.slot input{flex:1;min-width:0;width:100%;text-overflow:ellipsis;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px}
 .pick{display:flex;flex-direction:column;gap:4px}
+/* Searchable team picker (TeamPicker.jsx): looks like the other dropdowns, opens a search + list panel. */
+.tp{position:relative}
+.tp-btn{flex:1;min-width:0;width:100%;height:40px;border:1px solid var(--rule);border-radius:4px;padding:0 36px 0 10px;cursor:pointer;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--apron) var(--chevron) no-repeat right 12px center/12px 8px}
+.tp-btn.empty{color:var(--muted)}
+.tp-pop{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--apron);border:1px solid var(--rule);border-radius:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:6px}
+.tp-pop input{width:100%;min-width:0;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);padding:0 10px;font-size:16px}
+.tp-clear{align-self:flex-start}
+.tp-pop ul{list-style:none;margin:0;padding:0;max-height:280px;overflow-y:auto;overscroll-behavior:contain}
+.tp-pop li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px;border-radius:4px;cursor:pointer}
+.tp-pop li.on{background:var(--mat)}
+.tp-pop li.sel .tp-name{font-weight:700}
+.tp-name{min-width:0;overflow-wrap:anywhere}
+.tp-n{flex:none;font-family:var(--f-data);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tp-pop li.tp-none{cursor:default;color:var(--muted)}
 .slot.wr select,.slot.wr input,.slot.wr .back{height:34px;font-size:14px;color:var(--muted)}
 .team .as{font-weight:400;color:var(--muted)}
 .slot .back{flex:none;width:40px;height:40px;border:1px solid var(--rule);border-radius:4px;background:var(--apron);cursor:pointer;color:var(--muted)}
