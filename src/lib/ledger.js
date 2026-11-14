@@ -206,6 +206,36 @@ export function headToHead(matches, team1, team2, date) {
 
 // Highlights for the Records panel. Each is null until there's something to show.
 // Streak records count winning / losing days in a row (see dayStreaks); "best day" is the biggest single-night net.
+// Counted matches by month, for the month records: how many per month, and each player's and team's
+// W–L in each month. Follows the date filter because it's given the filtered list.
+export function monthCounts(list) {
+  const perMonth = {};
+  const players = {};
+  const teams = {};
+  const add = (bucket, name, month, won) => {
+    const r = ((bucket[name] ||= {})[month] ||= { w: 0, l: 0 });
+    won ? r.w++ : r.l++;
+  };
+  list.filter((m) => m.counted).forEach((m) => {
+    const month = m.date.slice(0, 7);
+    perMonth[month] = (perMonth[month] || 0) + 1;
+    [m.team1, m.team2].forEach((team, i) => {
+      const won = m.winner === i + 1;
+      add(teams, teamName(team), month, won);
+      team.forEach((n) => add(players, n, month, won));
+    });
+  });
+  return {
+    perMonth: Object.entries(perMonth).map(([month, n]) => ({ month, n })).sort((a, b) => b.month.localeCompare(a.month)),
+    players,
+    teams,
+  };
+}
+
+// Flattens { name: { month: {w, l} } } into one row per name and month.
+const monthRows = (byName) =>
+  Object.entries(byName).flatMap(([name, months]) => Object.entries(months).map(([month, r]) => ({ name, month, ...r })));
+
 export function records(list, players, teams) {
   const top = (arr, f) => arr.reduce((b, x) => (f(x) > (b ? f(b) : 0) ? x : b), null);
   const pick = (x, value) => (x ? { name: x.name, value } : null);
@@ -231,7 +261,27 @@ export function records(list, players, teams) {
   const MIN = 3;
   const byPct = players.slice().sort((a, b) => b.w / (b.w + b.l) - a.w / (a.w + a.l) || b.w - a.w || a.name.localeCompare(b.name));
   const best = byPct.find((p) => p.w + p.l >= MIN) || byPct[0];
+  // Month records. Best month uses the Best performer rule: best win %, then most wins, at least 3 matches.
+  const mc = monthCounts(list);
+  const total = mc.perMonth.reduce((s, x) => s + x.n, 0);
+  const busyMonth = mc.perMonth.length > 1 ? mc.perMonth.reduce((b, x) => (x.n > b.n ? x : b)) : null;
+  const pMonths = monthRows(mc.players);
+  const pBusyMonth = top(pMonths, (r) => r.w + r.l);
+  const bestMonth = (rows) => {
+    const sorted = rows.slice().sort((a, b) => b.w / (b.w + b.l) - a.w / (a.w + a.l) || b.w - a.w || a.month.localeCompare(b.month) || a.name.localeCompare(b.name));
+    const x = sorted.find((r) => r.w + r.l >= MIN) || sorted[0];
+    return x && { name: x.name, value: `${x.w}–${x.l} · ${pct(x.w, x.l)}%`, sub: scopeLabel(x.month) };
+  };
+  const pBusy = top(players, (p) => p.w + p.l);
+  const matches = (n) => n + (n === 1 ? " match" : " matches");
   return {
+    perMonth: mc.perMonth,
+    total: total ? { name: "", value: matches(total) } : null,
+    playerBusy: pick(pBusy, pBusy && matches(pBusy.w + pBusy.l)),
+    busiestMonth: busyMonth && { name: scopeLabel(busyMonth.month), value: matches(busyMonth.n) },
+    playerMonth: pBusyMonth && { name: pBusyMonth.name, value: matches(pBusyMonth.w + pBusyMonth.l), sub: scopeLabel(pBusyMonth.month) },
+    teamBestMonth: bestMonth(monthRows(mc.teams)),
+    playerBestMonth: bestMonth(pMonths),
     best: best && { name: best.name, value: `${pct(best.w, best.l)}% · ${best.w}–${best.l}` },
     teamWin: pick(tWin, tWin && days(tWin.best)),
     teamLoss: pick(tLoss, tLoss && days(tLoss.worst)),

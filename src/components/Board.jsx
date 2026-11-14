@@ -35,6 +35,140 @@ function Confetti() {
   );
 }
 
+// Two gold championship belts, one per tag partner, laid along one diagonal on the champ plate.
+// Styled after a modern big-plate title belt, drawn here with an original star emblem (no real logos).
+const r1 = (n) => +n.toFixed(1);
+// Centre plate outline: flat top, angled shoulders, straight sides, a curved point at the bottom.
+const PLATE = "M-33 -48 L33 -48 Q40 -48 45 -44.5 L52 -39.5 Q56 -36.5 56 -30 L56 20 Q56 37 0 51 Q-56 37 -56 20 L-56 -30 Q-56 -36.5 -52 -39.5 L-45 -44.5 Q-40 -48 -33 -48 Z";
+// Five-pointed star, outer radius R, inner radius r, centred on (0, cy).
+const star = (R, r, cy) => Array.from({ length: 10 }, (_, i) => {
+  const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+  const k = i % 2 ? r : R;
+  return `${i ? "L" : "M"}${r1(Math.cos(a) * k)} ${r1(cy + Math.sin(a) * k)}`;
+}).join(" ") + "Z";
+const STAR_OUT = star(22, 9.2, -10);
+const STAR_IN = star(16.5, 7, -10);
+const STAR_SM = star(6.5, 2.8, 0);
+
+// Stones: diamonds are cut as a rhombus; emeralds (green) and rubies (red) as an emerald-cut octagon.
+// Each has a lighter top facet, glints in turn (delay d) and throws a little four-point star of light.
+const STONES = {
+  diamond: { body: "#d9f4ff", edge: "#5fb8e6", face: "#fff" },
+  emerald: { body: "#13a356", edge: "#065c2c", face: "#7cf0ab" },
+  ruby: { body: "#d8142a", edge: "#6e0510", face: "#ff8a96" },
+};
+const Gem = ({ x, y, r, d = 0, kind = "diamond" }) => {
+  const c = STONES[kind];
+  const w = r * 0.85;
+  const body = kind === "diamond"
+    ? `M${x} ${y - r}L${x + w} ${y}L${x} ${y + r}L${x - w} ${y}Z`
+    : `M${x - w / 2} ${y - r}L${x + w / 2} ${y - r}L${x + w} ${y - r / 2}L${x + w} ${y + r / 2}L${x + w / 2} ${y + r}L${x - w / 2} ${y + r}L${x - w} ${y + r / 2}L${x - w} ${y - r / 2}Z`;
+  const face = kind === "diamond"
+    ? `M${x} ${y - r}L${x + w} ${y}L${x} ${y - r * 0.15}L${x - w} ${y}Z`
+    : `M${x - w / 2} ${y - r}L${x + w / 2} ${y - r}L${x + w * 0.45} ${y - r * 0.2}L${x - w * 0.45} ${y - r * 0.2}Z`;
+  const f = r * 4.2;
+  return (
+    <g className="gem" style={{ "--d": d + "s" }}>
+      <path d={body} fill={c.body} stroke={c.edge} strokeWidth=".45" />
+      <path d={face} fill={c.face} opacity=".9" />
+      <circle cx={x - w * 0.3} cy={y - r * 0.45} r={r * 0.18} fill="#fff" />
+      <path className="flare" d={`M${x} ${y - f}L${x + r * 0.22} ${y - r * 0.22}L${x + f} ${y}L${x + r * 0.22} ${y + r * 0.22}L${x} ${y + f}L${x - r * 0.22} ${y + r * 0.22}L${x - f} ${y}L${x - r * 0.22} ${y - r * 0.22}Z`} fill="#fff" />
+    </g>
+  );
+};
+
+// Side plate: gold square with a diamond-studded border and a round red medallion holding a small star.
+const SidePlate = ({ x, d }) => (
+  <g transform={`translate(${x} 0)`}>
+    <rect x="-23" y="-27" width="46" height="54" rx="9" fill="url(#belt-gold)" stroke="#5a3d00" strokeWidth="1" />
+    <rect x="-19.5" y="-23.5" width="39" height="47" rx="7" fill="none" stroke="url(#belt-band)" strokeWidth="3.6" />
+    <rect x="-19.5" y="-23.5" width="39" height="47" rx="7" fill="none" stroke="#f2fbff" strokeWidth="1.6" strokeDasharray="1.4 1.3" />
+    <circle r="15.5" fill="url(#belt-band)" />
+    <circle r="13.5" fill="none" stroke="#f2cf68" strokeWidth="1.6" strokeDasharray="1.2 1.1" />
+    <circle r="11" fill="#b3151d" stroke="#e8bf4e" strokeWidth="1.2" />
+    <path d={STAR_SM} fill="url(#belt-silver)" stroke="#55606a" strokeWidth=".5" />
+    <Gem x={0} y={-21.5} r={3.2} d={d} kind="emerald" />
+    <Gem x={0} y={21.5} r={3.2} d={d + 0.9} kind="ruby" />
+    <Gem x={-16} y={0} r={2} d={d + 0.45} />
+    <Gem x={16} y={0} r={2} d={d + 1.3} />
+  </g>
+);
+
+function OneBelt({ id, delay }) {
+  return (
+    <g className="one-belt">
+      {/* black leather strap with rounded ends and gold piping */}
+      <path d="M-110 -34 L-64 -40 L64 -40 L110 -34 Q124 -32 124 -18 L124 18 Q124 32 110 34 L64 40 L-64 40 L-110 34 Q-124 32 -124 18 L-124 -18 Q-124 -32 -110 -34 Z"
+        fill="url(#belt-strap)" stroke="#c9972a" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M-108 -30 L-64 -35.5 L64 -35.5 L108 -30 Q119.5 -28 119.5 -16 L119.5 16 Q119.5 28 108 30 L64 35.5 L-64 35.5 L-108 30 Q-119.5 28 -119.5 16 L-119.5 -16 Q-119.5 -28 -108 -30 Z"
+        fill="none" stroke="#e6bf5a" strokeWidth=".6" strokeDasharray="2 1.6" opacity=".7" />
+      <SidePlate x={-92} d={delay + 0.5} />
+      <SidePlate x={92} d={delay + 1.4} />
+      {/* gold bars between the side plates and the centre */}
+      {[-64, 64].map((x) => <rect key={x} x={x - 2.5} y="-33" width="5" height="66" rx="2.5" fill="url(#belt-gold)" stroke="#5a3d00" strokeWidth=".6" />)}
+      {/* centre plate: gold, a deep-gold band set with two rows of diamonds, textured gold field */}
+      <path d={PLATE} fill="url(#belt-gold)" stroke="#4a3200" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d={PLATE} transform="scale(.9)" fill="url(#belt-band)" />
+      <path d={PLATE} transform="scale(.93)" fill="none" stroke="#f2fbff" strokeWidth="1.5" strokeDasharray="1.4 1.2" />
+      <path d={PLATE} transform="scale(.87)" fill="none" stroke="#f2fbff" strokeWidth="1.3" strokeDasharray="1.2 1.2" />
+      <path d={PLATE} transform="scale(.82)" fill="url(#belt-field)" stroke="#f6dd8a" strokeWidth=".8" />
+      <path d={PLATE} transform="scale(.82)" fill="url(#belt-hammer)" opacity=".5" />
+      {/* emblem: a big silver star outlined in diamonds over a red swoosh */}
+      <path d="M-36 20 Q-4 10 38 8 L35 14 Q-2 15 -33 24 Z" fill="#c1121c" stroke="#6d0a10" strokeWidth=".6" />
+      <path d={STAR_OUT} fill="url(#belt-band)" stroke="#5a3d00" strokeWidth=".8" strokeLinejoin="round" />
+      <path d={STAR_OUT} fill="none" stroke="#e9f8ff" strokeWidth="1.5" strokeDasharray="1.3 1.1" strokeLinejoin="round" transform="translate(0 -10) scale(.92) translate(0 10)" />
+      <path d={STAR_IN} fill="url(#belt-silver)" stroke="#55606a" strokeWidth=".6" strokeLinejoin="round" />
+      <Gem x={0} y={-10} r={4.4} d={delay + 0.2} />
+      {/* banner across the bottom */}
+      <path d="M-30 26 Q0 32 30 26 L28 34 Q0 40 -28 34 Z" fill="#1a1715" stroke="#c9972a" strokeWidth=".6" />
+      <text x="0" y="33.6" textAnchor="middle" fontSize="5.4" fontWeight="700" letterSpacing=".6" fill="#f2cf68" fontFamily="Arial, sans-serif">TAG CHAMPIONS</text>
+      {/* stones on the plate: emeralds on the shoulders, rubies beside the star, diamonds top and bottom */}
+      <Gem x={-44} y={-39} r={4} d={delay + 0.8} kind="emerald" />
+      <Gem x={44} y={-39} r={4} d={delay + 1.7} kind="emerald" />
+      <Gem x={-31} y={-14} r={3.8} d={delay + 0.5} kind="ruby" />
+      <Gem x={31} y={-14} r={3.8} d={delay + 1.4} kind="ruby" />
+      <Gem x={0} y={-43} r={3.6} d={delay + 2.0} />
+      <Gem x={0} y={44} r={3.6} d={delay + 1.1} />
+      {/* a shine sweeping across the centre plate */}
+      <g clipPath={`url(#${id})`}>
+        <rect className="belt-shine" x="-80" y="-60" width="16" height="120" fill="#fff" opacity=".35" transform="skewX(-20)" />
+      </g>
+      <clipPath id={id}><path d={PLATE} /></clipPath>
+    </g>
+  );
+}
+
+// Both belts share one angle and sit on a single diagonal, the front one overlapping the back one's strap.
+const TILT = -16;
+function Belt() {
+  return (
+    <svg className="belt" viewBox="-176 -122 352 244" role="img" aria-label="Two championship belts">
+      <defs>
+        <linearGradient id="belt-gold" x1="0" y1="0" x2=".6" y2="1">
+          <stop offset="0" stopColor="#fff2b8" /><stop offset=".35" stopColor="#e8bd4a" /><stop offset=".7" stopColor="#bf8a1a" /><stop offset="1" stopColor="#7d5400" />
+        </linearGradient>
+        <radialGradient id="belt-field" cx=".45" cy=".35" r=".8">
+          <stop offset="0" stopColor="#f7dc8c" /><stop offset=".6" stopColor="#d9a93a" /><stop offset="1" stopColor="#a87612" />
+        </radialGradient>
+        <pattern id="belt-hammer" width="3" height="3" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r=".55" fill="#7d5400" /><circle cx="2.4" cy="2.2" r=".4" fill="#fff4c4" />
+        </pattern>
+        <linearGradient id="belt-silver" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" /><stop offset=".5" stopColor="#c9d3da" /><stop offset="1" stopColor="#8b98a3" />
+        </linearGradient>
+        <linearGradient id="belt-band" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#a8771a" /><stop offset="1" stopColor="#6a4600" />
+        </linearGradient>
+        <linearGradient id="belt-strap" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a3431" /><stop offset=".4" stopColor="#151210" /><stop offset="1" stopColor="#050404" />
+        </linearGradient>
+      </defs>
+      <g transform={`translate(-40 -36) rotate(${TILT})`}><OneBelt id="belt-clip-a" delay={0} /></g>
+      <g transform={`translate(40 36) rotate(${TILT})`}><OneBelt id="belt-clip-b" delay={1.1} /></g>
+    </svg>
+  );
+}
+
 export default function Board({ fb, user }) {
   const { db, auth } = fb;
   const isAdmin = user.email === ADMIN_EMAIL;
@@ -311,6 +445,7 @@ export default function Board({ fb, user }) {
           <div className="honours">
             <div className="plate">
               <Confetti />
+              <Belt />
               <div>
                 <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
                 <div className="nm">{nicks[lead.name] || lead.name}</div>

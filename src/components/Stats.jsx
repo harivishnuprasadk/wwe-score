@@ -117,8 +117,17 @@ function StatTable({ rows, first, empty, leadRow, moves, profile, single, awards
                 <td className="rk">{i + 1}{moves && <Move m={moves[x.name]} />}</td>
                 <td className="name">
                   {nicks[x.name] && <span className="nick">{nicks[x.name]}</span>}
-                  <button type="button" className="rowbtn" aria-expanded={open === x.name}
-                    onClick={() => setOpen(open === x.name ? null : x.name)}>{x.name}</button>
+                  {leadRow && i === 0 ? (
+                    // The no. 1 team gets a gold shimmer with twinkling stars (still when motion is reduced).
+                    <span className="sparkle">
+                      <button type="button" className="rowbtn champ-name" aria-expanded={open === x.name}
+                        onClick={() => setOpen(open === x.name ? null : x.name)}>{x.name}</button>
+                      <i aria-hidden="true">✦</i><i aria-hidden="true">✦</i><i aria-hidden="true">✦</i>
+                    </span>
+                  ) : (
+                    <button type="button" className="rowbtn" aria-expanded={open === x.name}
+                      onClick={() => setOpen(open === x.name ? null : x.name)}>{x.name}</button>
+                  )}
                   {awards && (i === 0 || awards.most.names.has(x.name)) && (
                     <span className="awards">
                       {i === 0 && <span className="award champ" title={`Overall winner · ${awards.scope}: most wins`}>🏆 Champ</span>}
@@ -231,6 +240,12 @@ function PlayerProfile({ p, row, pn, months }) {
 
 const TILES = [
   ["best", "Best performer"],
+  ["total", "Matches played"],
+  ["playerBusy", "Most matches · player"],
+  ["busiestMonth", "Busiest month"],
+  ["playerMonth", "Most matches in a month · player"],
+  ["teamBestMonth", "Best month · team"],
+  ["playerBestMonth", "Best month · player"],
   ["teamDay", "Best day · team"],
   ["playerDay", "Best day · player"],
   ["teamWin", "Most winning days in a row · team"],
@@ -244,11 +259,32 @@ const TILES = [
 ];
 
 // Records about a team get its nickname too.
-const TEAM_TILES = new Set(["teamWin", "teamLoss", "busiest", "teamDay"]);
+const TEAM_TILES = new Set(["teamWin", "teamLoss", "busiest", "teamDay", "teamBestMonth"]);
 
-const PLAYER_TILES = new Set(["best", "playerWin", "playerLoss", "playerDay"]);
-// Day-streak records need more than one day, so they're hidden when a single date is selected.
-const STREAK_TILES = new Set(["teamWin", "teamLoss", "playerWin", "playerLoss", "teamNights", "playerNights"]);
+const PLAYER_TILES = new Set(["best", "playerWin", "playerLoss", "playerDay", "playerBusy", "playerMonth", "playerBestMonth"]);
+// Day-streak and month records need more than one day, so they're hidden when a single date is selected.
+const STREAK_TILES = new Set(["teamWin", "teamLoss", "playerWin", "playerLoss", "teamNights", "playerNights",
+  "busiestMonth", "playerMonth", "teamBestMonth", "playerBestMonth"]);
+
+// Counted matches in each month of the selected dates, as bars. Newest month first.
+function MonthBars({ rows }) {
+  if (!rows?.length) return null;
+  const max = Math.max(...rows.map((r) => r.n));
+  return (
+    <div>
+      <h3>Matches per month</h3>
+      <ul className="mbars">
+        {rows.map((r) => (
+          <li key={r.month}>
+            <span className="m">{scopeLabel(r.month)}</span>
+            <span className="bar"><i style={{ width: (100 * r.n) / max + "%" }} /></span>
+            <span className="n">{r.n}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function Records({ recs, breaks, tn, pn, single }) {
   if (!recs.busiest) return <p className="empty">Records appear after the first counted match.</p>;
@@ -259,15 +295,16 @@ function Records({ recs, breaks, tn, pn, single }) {
           <div key={k} className={"rec-tile " + (k === "best" ? "star" : k.endsWith("Loss") ? "l" : k.endsWith("Win") ? "w" : "")}>
             <span className="eyebrow">{recs[k].consolation ? "Consolation prize · " + label.toLowerCase() : label}</span>
             <span className="v">{recs[k].value}</span>
-            <span className="who">
+            {recs[k].name !== "" && <span className="who">
               {k === "teamNights" ? recs[k].name.split(", ").map(tn).join(", ")
                 : k === "playerNights" ? recs[k].name.split(", ").map(pn).join(", ")
                 : TEAM_TILES.has(k) ? tn(recs[k].name) : PLAYER_TILES.has(k) ? pn(recs[k].name) : recs[k].name}
               {recs[k].sub && <span className="muted"> · {recs[k].sub}</span>}
-            </span>
+            </span>}
           </div>
         ))}
       </div>
+      {!single && <MonthBars rows={recs.perMonth} />}
       <div>
         <h3>Streak breakers</h3>
         {!breaks.length ? (

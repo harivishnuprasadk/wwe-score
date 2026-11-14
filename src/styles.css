@@ -82,6 +82,22 @@ h1 .r{color:var(--red)} h1 .b{color:var(--blue)}
   100%{transform:translate(-4px,110px) rotate(440deg)}
 }
 @keyframes plate-shine{0%{left:-60%}55%,100%{left:130%}}
+/* Two championship belts on the plate: diamonds glint and a shine sweeps across each centre plate. */
+.belt{flex:none;width:160px;height:auto;margin:-14px -6px -14px -4px}
+.belt .one-belt{filter:drop-shadow(0 3px 2px rgba(50,30,0,.45))}
+.belt .belt-shine{display:none}
+@media (max-width:560px){.belt{width:92px;margin:-6px -8px -6px -10px}}
+.belt .flare{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .belt .gem{transform-box:fill-box;transform-origin:center;animation:gem-glint 2.6s ease-in-out infinite;animation-delay:var(--d)}
+  .belt .flare{display:block;transform-box:fill-box;transform-origin:center;opacity:0;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff6c8);
+    animation:gem-flare 2.6s ease-in-out infinite;animation-delay:var(--d)}
+  .belt .belt-shine{display:block;animation:belt-shine 3.6s ease-in-out infinite}
+  .belt .one-belt:last-of-type .belt-shine{animation-delay:1.2s}
+}
+@keyframes gem-glint{0%,68%,100%{transform:scale(1);filter:brightness(1)}80%{transform:scale(1.4);filter:brightness(1.6) drop-shadow(0 0 2px #fff)}}
+@keyframes gem-flare{0%,66%,100%{opacity:0;transform:scale(.2) rotate(0deg)}80%{opacity:1;transform:scale(1) rotate(45deg)}92%{opacity:0;transform:scale(.4) rotate(90deg)}}
+@keyframes belt-shine{0%{transform:skewX(-20deg) translateX(0)}60%,100%{transform:skewX(-20deg) translateX(180px)}}
 .plate .lbl{font-family:var(--f-data);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .plate .nm{font-family:var(--f-display);font-weight:900;font-size:30px;text-transform:uppercase;line-height:1}
 .plate .rec{font-family:var(--f-data);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -248,6 +264,29 @@ tr.detail td{text-align:left;background:var(--mat);padding:12px;white-space:norm
 table.stat th,table.stat td{white-space:nowrap}
 table.stat th:nth-child(2),table.stat td.name{text-align:left;white-space:normal}
 tr.lead td.rk{color:var(--gold);font-weight:700}
+/* The no. 1 team: gold name, and with motion allowed a shimmer sweeping through it and twinkling stars. */
+.sparkle{position:relative;display:inline-block;padding-right:6px}
+.champ-name{color:var(--gold);font-weight:800}
+.champ-name::after{-webkit-text-fill-color:var(--muted)}
+.sparkle i{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .champ-name{background:linear-gradient(100deg,var(--gold) 0%,var(--gold) 38%,#fff3b8 50%,var(--gold) 62%,var(--gold) 100%);
+    background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gold-sweep 3s linear infinite}
+  .sparkle i{display:block;position:absolute;font-style:normal;color:var(--gold);font-size:10px;line-height:1;pointer-events:none;
+    opacity:0;animation:twinkle 2.4s ease-in-out infinite}
+  .sparkle i:nth-of-type(1){top:-7px;left:-6px}
+  .sparkle i:nth-of-type(2){top:-8px;right:4px;font-size:12px;animation-delay:.8s}
+  .sparkle i:nth-of-type(3){bottom:-6px;left:45%;font-size:8px;animation-delay:1.6s}
+}
+@keyframes gold-sweep{0%{background-position:100% 0}100%{background-position:-50% 0}}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.1) rotate(45deg)}}
+/* Records: matches per month bars */
+.mbars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mbars li{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr) auto;align-items:center;gap:10px;font-family:var(--f-data);font-weight:600}
+.mbars .m{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbars .bar{height:12px;background:var(--mat);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.mbars .bar i{display:block;height:100%;background:var(--gold)}
+.mbars .n{font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
 @media (max-width:560px){
   .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
