@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "deploy": "firebase deploy",
     "ship": "bash scripts/ship.sh",
-    "test:rules": "FIREBASE_EMULATORS_PATH=.emulators firebase emulators:exec --only firestore --project demo-tag-ledger \"node tests/rules.test.mjs\""
+    "test:rules": "FIREBASE_EMULATORS_PATH=.emulators firebase emulators:exec --only firestore --project demo-tag-ledger \"node tests/rules.test.mjs\"",
+    "setup:autodeploy": "bash scripts/setup-auto-deploy.sh"
   },
   "dependencies": {
     "firebase": "^10.14.1",

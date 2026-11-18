@@ -1,0 +1,52 @@
+# Deploys the app and the Firestore rules to Firebase every time main is pushed to GitHub,
+# so nobody has to run `npm run deploy` by hand. Needs the FIREBASE_SERVICE_ACCOUNT secret,
+# which `npm run setup:autodeploy` creates once. Without it this workflow skips the deploy.
+name: Deploy to Firebase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # The Firestore emulator (for the rule tests) needs Java.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - name: Build
+        run: npx vite build --outDir "$RUNNER_TEMP/build-check" --emptyOutDir --logLevel error
+
+      # The same anti-cheat rule tests as `npm run test:rules`; a failure stops the deploy.
+      - name: Rule tests
+        run: npm run test:rules
+
+      - name: Deploy (website + database rules)
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::warning::FIREBASE_SERVICE_ACCOUNT isn't set, so nothing was deployed. Run 'npm run setup:autodeploy' once on your computer."
+            exit 0
+          fi
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx firebase deploy --project wwe-tag-ledger --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

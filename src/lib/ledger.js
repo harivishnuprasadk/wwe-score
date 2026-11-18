@@ -123,6 +123,9 @@ export const teamName = (team) => [...team].sort((a, b) => a.localeCompare(b)).j
 
 // Standings for a list of matches (one night, or all dates). Streaks, form and trend are day-wise,
 // so with one date selected they describe that single day, and across all dates they run night by night.
+// A night is won by whoever had the most wins that night (ties share it): teams against teams, players
+// against players. Teams are ranked by nights won, then most wins, then fewest losses (user's choice,
+// 2026-11-18); players stay ranked by wins. Streaks and form still use each row's own W/L/E day.
 export function computeStats(list) {
   const ps = {};
   const ts = {};
@@ -139,27 +142,41 @@ export function computeStats(list) {
       tally(ts, teamName(team), m.date, won);
     });
   });
-  // Standings order: most wins, then fewest losses, then name. Win % alone would put a 1–0 team above a 9–2 one.
-  const rank = (a, b) => b.w - a.w || a.l - b.l || a.name.localeCompare(b.name);
-  const finish = ({ byDate, ...x }) => {
-    const days = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date)).map((d) => ({ ...d, net: d.w - d.l }));
-    // Biggest net; on a tie, more wins, then the later night (same order as the profile's best night).
-    const bestDay = days.reduce((b, d) => (!b || d.net > b.net || (d.net === b.net && d.w >= b.w) ? d : b), null);
-    return {
-      ...x,
-      net: x.w - x.l,
-      days,
-      nightsWon: days.filter((d) => d.net > 0).length,
-      ...dayStreaks(days),
-      form: days.slice(-RECENT).map(dayResult),
-      trend: trendOf(days),
-      bestDay,
-    };
+  // Most wins, then fewest losses, then name. Win % alone would put a 1–0 team above a 9–2 one.
+  const byWins = (a, b) => b.w - a.w || a.l - b.l || a.name.localeCompare(b.name);
+  const byNights = (a, b) => b.nightsWon - a.nightsWon || byWins(a, b);
+  const finish = (rows) => {
+    // Top wins on each night across these rows; anyone who matched it won that night.
+    const top = {};
+    rows.forEach((x) => Object.values(x.byDate).forEach((d) => { top[d.date] = Math.max(top[d.date] || 0, d.w); }));
+    return rows.map(({ byDate, ...x }) => {
+      const days = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date))
+        .map((d) => ({ ...d, net: d.w - d.l, top: d.w > 0 && d.w === top[d.date] }));
+      // Biggest net; on a tie, more wins, then the later night (same order as the profile's best night).
+      const bestDay = days.reduce((b, d) => (!b || d.net > b.net || (d.net === b.net && d.w >= b.w) ? d : b), null);
+      return {
+        ...x,
+        net: x.w - x.l,
+        days,
+        nightsWon: days.filter((d) => d.top).length,
+        ...dayStreaks(days),
+        form: days.slice(-RECENT).map(dayResult),
+        trend: trendOf(days),
+        bestDay,
+      };
+    });
   };
   return {
-    players: Object.values(ps).map(finish).sort(rank),
-    teams: Object.values(ts).map(finish).sort(rank),
+    players: finish(Object.values(ps)).sort(byWins),
+    teams: finish(Object.values(ts)).sort(byNights),
   };
+}
+
+// The tag team champions: every team with the most nights won (ties share the belt). On a single
+// night that's whoever had the most wins. Empty until someone has won a night.
+export function champions(teams) {
+  const n = teams[0]?.nightsWon || 0;
+  return n ? teams.filter((t) => t.nightsWon === n) : [];
 }
 
 // Rows that won the most nights in this list (ties share it). Needs at least two nights in play,
@@ -172,17 +189,39 @@ export function mostNights(rows) {
 }
 
 // Nights won per month for each row of computeStats (teams or players): { name: { "2026-10": 3, ... } }.
-// A night won = more wins than losses that night, same as the day-wise streaks.
+// A night won = most wins that night, same as the standings.
 export function monthlyWins(rows) {
   const out = {};
   rows.forEach((x) => {
     const byMonth = (out[x.name] = {});
-    x.days.filter((d) => d.net > 0).forEach((d) => {
+    x.days.filter((d) => d.top).forEach((d) => {
       const m = d.date.slice(0, 7);
       byMonth[m] = (byMonth[m] || 0) + 1;
     });
   });
   return out;
+}
+
+// The two awards under the belt, for the selected dates.
+// MVP: best win % among players with at least MVP_MIN matches (ties share it); none until someone qualifies.
+// Biggest night: the most wins any team had in one night (ties share it); only when more than one night is on view.
+export const MVP_MIN = 10;
+export function honours(players, teams, single) {
+  const ok = players.filter((p) => p.w + p.l >= MVP_MIN);
+  // Compare win % exactly (cross-multiplied) so equal records really tie.
+  const better = (a, b) => a.w * (b.w + b.l) - b.w * (a.w + a.l);
+  const best = ok.reduce((b, p) => (!b || better(p, b) > 0 ? p : b), null);
+  const mvp = best ? ok.filter((p) => better(p, best) === 0).sort((a, b) => b.w - a.w || a.name.localeCompare(b.name)) : [];
+  let big = [];
+  if (!single) {
+    const nights = teams.flatMap((t) => t.days.map((d) => ({ name: t.name, ...d })));
+    const most = Math.max(0, ...nights.map((d) => d.w));
+    if (most) big = nights.filter((d) => d.w === most).sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
+  }
+  return {
+    mvp: mvp.map((p) => ({ name: p.name, value: `${pct(p.w, p.l)}% · ${p.w}–${p.l}` })),
+    bigNight: big.map((d) => ({ name: d.name, value: `${d.w} wins`, sub: fmtDate(d.date) })),
+  };
 }
 
 // Head-to-head between two teams, whichever corner each was in. No-count matches are skipped.
@@ -253,8 +292,7 @@ export function records(list, players, teams) {
     const m = mostNights(rows);
     if (!m.n) return null;
     const names = [...m.names];
-    // A consolation prize, unless the no. 1 in the standings also won the most nights.
-    return { name: names.join(", "), value: `${m.n} nights won`, shared: names.length > 1, consolation: !m.names.has(rows[0].name) };
+    return { name: names.join(", "), value: `${m.n} nights won`, shared: names.length > 1 };
   };
   const dayPick = (x) => x && { name: x.name, value: `+${x.bestDay.net} · ${x.bestDay.w}–${x.bestDay.l}`, sub: fmtDate(x.bestDay.date) };
   // Best win % (then most wins) among players with 3+ matches; anyone counts until someone has 3.

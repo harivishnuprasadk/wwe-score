@@ -41,16 +41,15 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - Optional **wrestler** per player, from a 2K23 roster list or typed in.
 
 **Stats** (the **Showing** filter switches between **All dates**, a **month** such as October 2026, or a single **night**)
-- **Top tag team** plate in the header: the team with the most wins (fewest losses breaks a tie), with two gold championship belts (one per partner; rounded gold plates set with diamonds, emeralds and rubies that twinkle, a star emblem and a moving shine) and falling confetti. Beside it, a **Consolation prize** badge for the team that won the most nights, when that's a different team.
+- **Tag team champions** plate in the header: the team that won the **most nights** in the selected dates. A night is won by the team with the **most wins that night**; if two teams tie on wins, both get the night. If teams tie on nights, they are shown together as **joint champions**. With a single night selected, the champions are the team(s) with the most wins that night. The plate shows two gold championship belts (one per partner; rounded gold plates set with diamonds, emeralds and rubies that twinkle, a star emblem and a moving shine) and falling confetti.
+- Below the belt, a smaller box with two awards: **⭐ MVP**, the player with the best win % (at least 10 matches in the selected dates; ties share it; hidden until someone has played 10), and **🔥 Biggest night**, the most wins a team had in one night (hidden when a single night is selected).
 - **Day-wise performance:** each night is a **winning day** (more wins than losses), a **losing day** (more losses) or an **even day**. Streaks count winning or losing **days** in a row, and even days are skipped.
   - **One date selected:** **Net** is that night's wins minus losses, and the **Day** column says whether it was Won, Lost or Even.
   - **A month or All dates:** Net is the running total, and **Streak** counts winning or losing days in a row (e.g. W3 = three winning nights).
-- **Teams tab:** standings ranked by **most wins, then fewest losses**, with rank, **▲▼ movement** since the previous night, W–L, **Net**, win %, streak and **Form**: the last 2 nights as dots (green won, red lost, grey even), plus ↑ or ↓ once there are more than 2 nights, when the last-2-night win % is at least 10 points above or below overall. Form is hidden when a single night is selected. The no. 1 team's name shimmers gold with twinkling stars. Tap a team for its profile: matches played, best and worst day streaks (most winning / losing nights in a row), last 2 nights, **nights won by month** (★ badges), **nemesis**, nights played, matches per night, **best night** and **worst night** (by net).
+- **Teams tab:** standings ranked by **nights won, then most wins, then fewest losses**, with rank, **▲▼ movement** since the previous night, **Nights** (nights won; hidden for a single night), W–L, **Net**, win %, streak and **Form**: the last 2 nights as dots (green won, red lost, grey even), plus ↑ or ↓ once there are more than 2 nights, when the last-2-night win % is at least 10 points above or below overall. Form is hidden when a single night is selected. The champions' names shimmer gold with twinkling stars and carry a **🏆 Champions** badge. Tap a team for its profile: matches played, best and worst day streaks (most winning / losing nights in a row), last 2 nights, **nights won by month** (badges), **nemesis**, nights played, matches per night, **best night** and **worst night** (by net).
 - **Players tab:** the same table for individual players. Tap a player for their profile: **best partner**, **most-played partner**, streaks, last 2 nights, nights won by month and attendance.
-- **Award badges** (Teams and Players tables, for the period on view):
-  - **🏆 Champ:** the overall winner, number 1 in the standings (most wins, then fewest losses).
-  - **★ Most nights:** whoever won the most **nights** (a night is won with more wins than losses), regardless of how many matches. Ties share it. It's hidden when a single night is selected.
-  - **Consolation prize** (in the header, beside the Top tag team plate): the team that won the most nights, shown when that isn't the top team.
+- **Award badge** (Teams table, for the period on view):
+  - **🏆 Champions:** the belt holders (most nights won; on a single night, most wins). Ties share it.
 - **Rivalries tab:** pick **Team 1 vs Team 2** (defaults to the most-played matchup; ⇄ swaps sides) for their head-to-head in the selected dates: meetings, W–L and win % for each side, net, **nights won** by each side, **day streak** (who won the last nights they met), last 2 nights they met and last meeting. With one date selected it shows who won that night. **Player cards** show each player's record in this rivalry, their record across all matches in the selected dates, nights played and the wrestler they usually use against this team. **All matchups** lists every pairing that met; tap one to open it.
 - **Records tab:** **best performer** (best win %, at least 3 matches), **best day** (biggest single-night net, team and player), **most nights won** (team and player, not shown for a single night), most winning and losing days in a row (team and player, All dates only), most matches (team and player), **matches played**, **busiest month**, **most matches in a month** (player), **best month** (best single-month record, team and player, at least 3 matches; month records hidden for a single night), a **matches per month** bar list, **biggest rivalry**, and the **streak breakers** log (who ended a team's run of 2+ winning days).
 
@@ -166,7 +165,15 @@ You're live.
 
 ## 5. Deploy new changes
 
-Do this every time you change the code, e.g. after asking Claude for a new feature.
+**Automatic (recommended):** every push to `main` on GitHub builds the app, runs the rule tests and deploys to Firebase by itself (`.github/workflows/deploy.yml`). Set it up once, on your computer:
+
+```
+npm run setup:autodeploy
+```
+
+It installs `gcloud` and `gh` if needed, asks you to sign in once in the browser, creates a deploy-only Google account for the project and saves its key as the `FIREBASE_SERVICE_ACCOUNT` secret on GitHub (the key isn't kept on your computer). Only the GitHub repo's owner or an admin can add the secret. After that, pushing is deploying: check progress in the repo's **Actions** tab. A failed build or rule test stops the deploy.
+
+**By hand,** if automatic deploys aren't set up:
 
 **One command for everything:**
 
@@ -406,3 +413,4 @@ tag-ledger-backup-2026-10-06.json   matches from 6 Oct 2026
 | `npm run build` | Build the site into `dist/` (deploy does this for you) |
 | `npm run deploy` | Build and publish the website and the database rules |
 | `npm run ship -- "message"` | Check, commit, deploy and push in one go (`--dry-run` to only check) |
+| `npm run setup:autodeploy` | One-time: make every push to GitHub deploy to Firebase automatically |

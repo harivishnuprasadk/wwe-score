@@ -1,12 +1,14 @@
 import { Fragment, useState } from "react";
-import { fmtDate, isDay, mostNights, pct, RECENT, scopeLabel } from "../lib/ledger.js";
+import { champions, fmtDate, isDay, pct, RECENT, scopeLabel } from "../lib/ledger.js";
 import Rivalries from "./Rivalries.jsx";
 
 // The stats side of the board: Teams, Players and Records tabs.
 // Tables follow the date filter; tapping a row opens that team's or player's all-time profile.
 
 // Streaks and form are day-wise: a night with more wins than losses is a winning day.
-const DAYS_NOTE = "Streaks count winning (W) or losing (L) days in a row; even days are skipped. 🏆 Champ = most wins; ★ Most nights = won the most nights (a night is won with more wins than losses).";
+const DAYS_NOTE = "Streaks count winning (W) or losing (L) days in a row; even days are skipped.";
+// Teams only: nights won decide the ranking and the belt.
+const NIGHTS_NOTE = "Nights = nights won: the team with the most wins on a night wins it (a tie shares it). Teams are ranked by nights, then wins. 🏆 Champions = most nights won (on a single night, most wins).";
 
 const TABS = [["teams", "Teams"], ["players", "Players"], ["records", "Records"], ["rivalries", "Rivalries"]];
 const TAB_KEY = "tag-ledger-tab";
@@ -28,8 +30,8 @@ export default function Stats({ session, list, monthWins, teams, players, recs, 
   const scope = scopeLabel(session);
   // One night selected: streaks become "how did the night go". A month or all dates run night by night.
   const single = isDay(session);
-  // Award badges for the period on view: Champ (no. 1 in the standings) and Most nights (won the most nights).
-  const awards = (rows) => ({ scope, most: mostNights(rows) });
+  // The belt holders for the period on view, badged and shimmering in the Teams table.
+  const champs = new Set(champions(teams).map((t) => t.name));
 
   return (
     <section className="panel stats" aria-labelledby="statsH">
@@ -46,18 +48,18 @@ export default function Stats({ session, list, monthWins, teams, players, recs, 
       <div role="tabpanel" id={"pane-" + tab} aria-labelledby={"tab-" + tab}>
         {tab === "teams" && (
           <>
-            <StatTable rows={teams} first="Team" moves={session === "all" ? moves : null} leadRow nicks={nicks} single={single} awards={awards(teams)}
+            <StatTable rows={teams} first="Team" moves={session === "all" ? moves : null} champs={champs} scope={scope} nights={!single} nicks={nicks} single={single}
               empty="Standings appear after the first counted match."
               profile={(name, row) => <TeamProfile p={teamProf[name]} row={row} tn={tn} months={monthWins.teams[name]} />} />
             <p className="note">
               Tap a team for its all-time profile. Each pairing is its own team, whichever corner they were in.
-              {session === "all" && " ▲▼ shows the move since the previous game night."} {DAYS_NOTE}
+              {session === "all" && " ▲▼ shows the move since the previous game night."} {NIGHTS_NOTE} {DAYS_NOTE}
             </p>
           </>
         )}
         {tab === "players" && (
           <>
-            <StatTable rows={players} first="Player" empty="No player records yet." nicks={aliases} single={single} awards={awards(players)}
+            <StatTable rows={players} first="Player" empty="No player records yet." nicks={aliases} single={single}
               profile={(name, row) => <PlayerProfile p={playerProf[name]} row={row} pn={pn} months={monthWins.players[name]} />} />
             <p className="note">Tap a player for their all-time profile. Each tag win counts as a win for both partners. {DAYS_NOTE}</p>
           </>
@@ -95,15 +97,19 @@ const fmtNet = (n) => (n > 0 ? "+" + n : n < 0 ? "−" + -n : "0");
 
 // Compact standings table. Rows expand to show a profile underneath.
 // With one date selected, Streak shows how that day went; across all dates it counts W/L days in a row.
-function StatTable({ rows, first, empty, leadRow, moves, profile, single, awards, nicks = {} }) {
+// Teams get a Nights column (hidden for a single night) and the champions' badge and shimmer.
+function StatTable({ rows, first, empty, champs, scope, nights, moves, profile, single, nicks = {} }) {
   const [open, setOpen] = useState(null);
-  const cols = single ? 6 : 7;
+  const cols = (single ? 6 : 7) + (nights ? 1 : 0);
+  const isChamp = (x) => champs?.has(x.name);
   return (
     <div className="tbl-wrap">
       <table className="stat">
         <thead>
           <tr>
-            <th>#</th><th>{first}</th><th>W–L</th>
+            <th>#</th><th>{first}</th>
+            {nights && <th title="Nights won: most wins on the night (a tie shares it)">Nights</th>}
+            <th>W–L</th>
             <th title="Wins minus losses">Net</th><th>Win %</th>
             <th title={single ? "How the day went" : "Winning (W) or losing (L) days in a row; even days are skipped"}>{single ? "Day" : "Streak"}</th>
             {!single && <th title={`Last ${RECENT} nights: won, lost or even. ↑/↓ appears once there are more than ${RECENT} nights: last-${RECENT}-night win % at least 10 points above/below overall`}>Form</th>}
@@ -113,12 +119,12 @@ function StatTable({ rows, first, empty, leadRow, moves, profile, single, awards
           {!rows.length && <tr><td colSpan={cols} className="empty">{empty}</td></tr>}
           {rows.map((x, i) => (
             <Fragment key={x.name}>
-              <tr className={(leadRow && i === 0 ? "lead " : "") + (open === x.name ? "open" : "")}>
+              <tr className={(isChamp(x) ? "lead " : "") + (open === x.name ? "open" : "")}>
                 <td className="rk">{i + 1}{moves && <Move m={moves[x.name]} />}</td>
                 <td className="name">
                   {nicks[x.name] && <span className="nick">{nicks[x.name]}</span>}
-                  {leadRow && i === 0 ? (
-                    // The no. 1 team gets a gold shimmer with twinkling stars (still when motion is reduced).
+                  {isChamp(x) ? (
+                    // The champions get a gold shimmer with twinkling stars (still when motion is reduced).
                     <span className="sparkle">
                       <button type="button" className="rowbtn champ-name" aria-expanded={open === x.name}
                         onClick={() => setOpen(open === x.name ? null : x.name)}>{x.name}</button>
@@ -128,15 +134,13 @@ function StatTable({ rows, first, empty, leadRow, moves, profile, single, awards
                     <button type="button" className="rowbtn" aria-expanded={open === x.name}
                       onClick={() => setOpen(open === x.name ? null : x.name)}>{x.name}</button>
                   )}
-                  {awards && (i === 0 || awards.most.names.has(x.name)) && (
+                  {isChamp(x) && (
                     <span className="awards">
-                      {i === 0 && <span className="award champ" title={`Overall winner · ${awards.scope}: most wins`}>🏆 Champ</span>}
-                      {awards.most.names.has(x.name) && (
-                        <span className="award nights" title={`Won the most nights · ${awards.scope}: ${awards.most.n}`}>★ Most nights · {awards.most.n}</span>
-                      )}
+                      <span className="award champ" title={`Tag team champions · ${scope}`}>🏆 Champions</span>
                     </span>
                   )}
                 </td>
+                {nights && <td className="nights">{x.nightsWon}</td>}
                 <td>{x.w}–{x.l}</td>
                 <td className={"net " + (x.net > 0 ? "w" : x.net < 0 ? "l" : "")}>{fmtNet(x.net)}</td>
                 <td>{pct(x.w, x.l)}%</td>
@@ -293,7 +297,7 @@ function Records({ recs, breaks, tn, pn, single }) {
       <div className="recs">
         {TILES.filter(([k]) => !(single && STREAK_TILES.has(k))).map(([k, label]) => recs[k] && (
           <div key={k} className={"rec-tile " + (k === "best" ? "star" : k.endsWith("Loss") ? "l" : k.endsWith("Win") ? "w" : "")}>
-            <span className="eyebrow">{recs[k].consolation ? "Consolation prize · " + label.toLowerCase() : label}</span>
+            <span className="eyebrow">{label}</span>
             <span className="v">{recs[k].value}</span>
             {recs[k].name !== "" && <span className="who">
               {k === "teamNights" ? recs[k].name.split(", ").map(tn).join(", ")

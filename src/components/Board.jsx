@@ -3,7 +3,7 @@ import { signOut } from "firebase/auth";
 import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 import { ADMIN_EMAIL, LOCK_MS } from "../lib/firebase.js";
 import { useDocs, useMatches, useNow } from "../lib/hooks.js";
-import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, pct, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, mostNights, scopeLabel } from "../lib/ledger.js";
+import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, champions, honours, isDay, scopeLabel } from "../lib/ledger.js";
 import { playerProfiles, rankMoves, streakBreaks, teamProfiles } from "../lib/profiles.js";
 import { ROSTER } from "../lib/roster.js";
 import BookMatch from "./BookMatch.jsx";
@@ -222,12 +222,11 @@ export default function Board({ fb, user }) {
   const playerProf = useMemo(() => playerProfiles(scored), [scored]);
   const allBreaks = useMemo(() => streakBreaks(scored), [scored]);
   const breaks = allBreaks.filter((b) => inScope(session, b.date));
-  const lead = teams[0];
-  // Consolation prize: the team(s) that won the most nights, when that isn't the top team.
-  const consolation = useMemo(() => {
-    const m = mostNights(teams);
-    return m.n && lead && !m.names.has(lead.name) ? { n: m.n, names: [...m.names] } : null;
-  }, [teams, lead]);
+  // The belt: the team(s) that won the most nights (on a single night, the most wins). Ties share it.
+  const champs = useMemo(() => champions(teams), [teams]);
+  const single = isDay(session);
+  // MVP and Biggest night, in the smaller box under the belt.
+  const awards = useMemo(() => honours(players, teams, single), [players, teams, single]);
 
   const say = (text, kind = "ok") => setMsg({ text, kind });
   const fillSlots = (m) => {
@@ -441,23 +440,41 @@ export default function Board({ fb, user }) {
             </div>
           </div>
         </div>
-        {lead && (
+        {champs.length > 0 && (
           <div className="honours">
-            <div className="plate">
+            <div className={"plate" + (champs.length > 1 ? " joint" : "")}>
               <Confetti />
               <Belt />
               <div>
-                <div className="lbl">{session === "all" ? "All-time top tag team" : "Top tag team · " + scopeLabel(session)}</div>
-                <div className="nm">{nicks[lead.name] || lead.name}</div>
-                {nicks[lead.name] && <div className="lbl">{lead.name}</div>}
+                <div className="lbl">{champs.length > 1 ? "Joint tag team champions" : "Tag team champions"} · {scopeLabel(session)}</div>
+                {champs.map((c) => (
+                  <div key={c.name} className="champ">
+                    <div className="nm">{nicks[c.name] || c.name}</div>
+                    {nicks[c.name] && <div className="lbl">{c.name}</div>}
+                  </div>
+                ))}
               </div>
-              <div className="rec">{lead.w}–{lead.l} · {pct(lead.w, lead.l)}%</div>
+              <div className="rec">
+                {single ? `${champs[0].w} ${champs[0].w === 1 ? "win" : "wins"}` : `${champs[0].nightsWon} ${champs[0].nightsWon === 1 ? "night" : "nights"} won`}
+                {champs.length > 1 && <span className="each"> each</span>}
+              </div>
             </div>
-            {consolation && (
-              <div className="consolation" title="Won the most nights (more wins than losses on the night)">
-                <span className="lbl">★ Consolation prize</span>
-                <span className="who">{consolation.names.map((n) => nicks[n] || n).join(", ")}</span>
-                <span className="n">{consolation.n} nights won</span>
+            {(awards.mvp.length > 0 || awards.bigNight.length > 0) && (
+              <div className="prizes">
+                {awards.mvp.length > 0 && (
+                  <div className="prize" title={`Best win % with at least 10 matches · ${scopeLabel(session)}`}>
+                    <span className="lbl">⭐ MVP</span>
+                    <span className="who">{awards.mvp.map((p) => p.name).join(", ")}</span>
+                    <span className="n">{awards.mvp[0].value}</span>
+                  </div>
+                )}
+                {awards.bigNight.length > 0 && (
+                  <div className="prize" title={`Most wins by a team in one night · ${scopeLabel(session)}`}>
+                    <span className="lbl">🔥 Biggest night</span>
+                    <span className="who">{awards.bigNight.map((d) => nicks[d.name] || d.name).join(", ")}</span>
+                    <span className="n">{awards.bigNight[0].value} · {awards.bigNight.map((d) => d.sub).filter((x, i, a) => a.indexOf(x) === i).join(", ")}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

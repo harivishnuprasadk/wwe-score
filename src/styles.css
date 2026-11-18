@@ -368,13 +368,26 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
 .awards{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
 .award{display:inline-block;padding:0 7px;border-radius:999px;font-family:var(--f-data);font-size:11px;font-weight:700;line-height:18px;white-space:nowrap}
 .award.champ{background:var(--gold-plate);color:var(--gold-ink)}
-.award.nights{background:var(--blue-soft);color:var(--blue)}
-/* header honours: top tag team plate, with the consolation prize beside it */
-.honours{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.consolation{display:flex;flex-direction:column;gap:1px;padding:6px 12px;border-radius:8px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue);max-width:220px}
-.consolation .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
-.consolation .who{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
-.consolation .n{font-family:var(--f-data);font-size:12px;font-weight:600}
+/* header honours: the belt plate, then a smaller box with MVP and Biggest night */
+.honours{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.plate .champ + .champ{margin-top:6px}
+.honours,.plate{max-width:100%}
+.plate.joint .nm{font-size:24px}
+/* Phones: the record drops under the names so long or joint champion names never push the page sideways. */
+@media (max-width:560px){
+  .plate{flex-wrap:wrap;padding:12px 20px;gap:8px 12px;border-radius:28px}
+  .plate > div:not(.rec){flex:1 1 0;min-width:0}
+  .plate .nm{font-size:24px;overflow-wrap:anywhere}
+  .plate.joint .nm{font-size:20px}
+  .plate .rec{flex-basis:100%;text-align:right}
+}
+.plate .rec .each{font-weight:600;opacity:.8}
+.prizes{display:flex;flex-wrap:wrap;gap:8px;padding:6px;border-radius:10px;border:1px solid var(--gold);background:var(--apron)}
+.prize{display:flex;flex-direction:column;gap:1px;padding:5px 10px;border-radius:7px;background:var(--gold-plate);color:var(--gold-ink);min-width:0;max-width:240px}
+.prize .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.prize .who{font-family:var(--f-display);font-weight:700;font-size:16px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
+.prize .n{font-family:var(--f-data);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+table.stat td.nights{font-weight:800;color:var(--gold)}
 /* Match card "Show" menu */
 .head-right{display:flex;align-items:center;gap:10px}
 .showmenu{position:relative}
