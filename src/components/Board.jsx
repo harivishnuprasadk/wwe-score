@@ -475,7 +475,7 @@ export default function Board({ fb, user }) {
         <div className="prizes">
           {awards.mvp.length > 0 && (
             <div className="prize mvp" title={`Best win % with at least 10 matches · ${scopeLabel(session)}`}>
-              <span className="emblem" aria-hidden="true">★</span>
+              <span className="emblem" aria-hidden="true"><span className="glyph">★</span><i>✦</i><i>✦</i><i>✦</i></span>
               <div className="txt">
                 <span className="lbl">MVP</span>
                 <span className="who">{awards.mvp.map((p) => p.name).join(", ")}</span>
@@ -485,7 +485,7 @@ export default function Board({ fb, user }) {
           )}
           {awards.bigNight.length > 0 && (
             <div className="prize fire" title={`Most wins by a team in one night · ${scopeLabel(session)}`}>
-              <span className="emblem" aria-hidden="true">🔥</span>
+              <span className="emblem" aria-hidden="true"><span className="glyph">🔥</span></span>
               <div className="txt">
                 <span className="lbl">Biggest night</span>
                 <span className="who">{awards.bigNight.map((d) => nicks[d.name] || d.name).join(", ")}</span>
