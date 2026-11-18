@@ -369,7 +369,8 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
 .award{display:inline-block;padding:0 7px;border-radius:999px;font-family:var(--f-data);font-size:11px;font-weight:700;line-height:18px;white-space:nowrap}
 .award.champ{background:var(--gold-plate);color:var(--gold-ink)}
 /* header honours: the belt plate, then a smaller box with MVP and Biggest night */
-.honours{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+/* The award cards sit under the plate and share its width, so the three read as one set. */
+.honours{display:inline-flex;flex-direction:column;align-items:stretch;gap:10px;min-width:0;align-self:flex-start}
 .plate .champ + .champ{margin-top:6px}
 .honours,.plate{max-width:100%}
 .plate.joint .nm{font-size:24px}
@@ -382,14 +383,35 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
   .plate .rec{flex-basis:100%;text-align:right}
 }
 .plate .rec .each{font-weight:600;opacity:.8}
-/* Gold stays the belt's alone: MVP is blue (the player award), Biggest night is red (fire). */
-.prizes{display:flex;flex-wrap:wrap;gap:8px;padding:6px;border-radius:10px;border:1px solid var(--rule);background:var(--apron)}
-.prize{display:flex;flex-direction:column;gap:1px;padding:5px 10px;border-radius:7px;border:1px solid;border-left-width:4px;min-width:0;max-width:240px}
-.prize.mvp{background:var(--blue-soft);color:var(--blue);border-color:var(--blue)}
-.prize.fire{background:var(--red-soft);color:var(--red);border-color:var(--red)}
-.prize .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
-.prize .who{font-family:var(--f-display);font-weight:700;font-size:16px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
-.prize .n{font-family:var(--f-data);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+/* Gold stays the belt's alone. The two awards are equal medal cards: MVP in royal blue with a silver star,
+   Biggest night in an orange-to-red flame. Solid colours, so they read the same in light and dark mode. */
+.prizes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prize{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;color:#fff;min-width:0;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.18),inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px -8px rgba(0,0,0,.45)}
+.prize.mvp{background:linear-gradient(135deg,#3a6cf0 0%,#1f4fd1 45%,#0f2a80 100%)}
+.prize.fire{background:linear-gradient(135deg,#ffb23e 0%,#f2661f 45%,#b81d2b 100%)}
+.prize .emblem{flex:none;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;font-size:22px;line-height:1;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),0 2px 6px rgba(0,0,0,.3)}
+.prize.mvp .emblem{background:radial-gradient(circle at 35% 30%,#ffffff,#cfd8e6 55%,#8d99ad);color:#1f4fd1}
+.prize.fire .emblem{background:radial-gradient(circle at 35% 30%,#fff3c4,#ffc44d 55%,#e8862a)}
+.prize .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prize .lbl{font-family:var(--f-data);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+.prize .who{font-family:var(--f-display);font-weight:900;font-size:20px;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.prize .n{font-family:var(--f-data);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;opacity:.92}
+/* A soft shine across each card now and then, echoing the belt (still when motion is reduced). */
+.prize::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-20deg);display:none}
+@media (prefers-reduced-motion:no-preference){
+  .prize::after{display:block;animation:plate-shine 6s ease-in-out infinite}
+  .prize.fire::after{animation-delay:3s}
+}
+@media (max-width:560px){
+  .prizes{grid-template-columns:1fr 1fr;gap:8px}
+  .prize{padding:10px;gap:8px;border-radius:14px}
+  .prize .emblem{width:32px;height:32px;font-size:17px}
+  .prize .who{font-size:16px}
+  .prize .n{font-size:12px}
+}
 table.stat td.nights{font-weight:800;color:var(--gold)}
 /* Match card "Show" menu */
 .head-right{display:flex;align-items:center;gap:10px}
