@@ -1,9 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut } from "firebase/auth";
 import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 import { ADMIN_EMAIL, LOCK_MS } from "../lib/firebase.js";
 import { useDocs, useMatches, useNow } from "../lib/hooks.js";
-import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, champions, honours, isDay, scopeLabel } from "../lib/ledger.js";
+import { allNames, allWrestlers, byTime, computeStats, fmtDate, byLower, nickMap, records, teamKey, teamOptions, todayStr, wrestlersOf, inScope, monthList, monthlyWins, champions, honours, isDay, scopeLabel, chipLabel } from "../lib/ledger.js";
 import { playerProfiles, rankMoves, streakBreaks, teamProfiles } from "../lib/profiles.js";
 import { ROSTER } from "../lib/roster.js";
 import BookMatch from "./BookMatch.jsx";
@@ -15,6 +15,19 @@ const PLAYERS = ["a1", "a2", "b1", "b2"];
 // Player slots, plus "w"-prefixed slots for the wrestler each one plays as.
 const EMPTY = { a1: "", a2: "", b1: "", b2: "", wa1: "", wa2: "", wb1: "", wb2: "" };
 const clean = (s) => s.trim().replace(/\s+/g, " ");
+
+// Phones and small tablets show one section at a time, picked in the bottom tab bar (remembered per browser).
+// Wider screens show everything as a two-column dashboard and ignore this.
+const SECTIONS = [
+  ["play", "Play", <><rect x="2" y="6" width="20" height="12" rx="6" /><path d="M7 10v4M5 12h4" /><circle cx="16" cy="11" r="1" /><circle cx="18" cy="13" r="1" /></>],
+  ["matches", "Matches", <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />],
+  ["stats", "Stats", <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />],
+  ["roster", "Roster", <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><circle cx="17" cy="9" r="2.5" /><path d="M16 14.5a5 5 0 0 1 6 5" /></>],
+];
+const SECTION_KEY = "tag-ledger-section";
+function loadSection() {
+  try { const v = localStorage.getItem(SECTION_KEY); return SECTIONS.some(([k]) => k === v) ? v : "play"; } catch { return "play"; }
+}
 
 // Celebration on the gold plate: confetti drifting behind the champion's name. Fixed positions and
 // timings (not random) so it doesn't jump on every re-render. Pure CSS; hidden for reduced motion.
@@ -185,7 +198,14 @@ export default function Board({ fb, user }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [sessionSel, setSessionSel] = useState(null);
+  const [section, setSectionState] = useState(loadSection);
+  const setSection = (k) => {
+    setSectionState(k);
+    try { localStorage.setItem(SECTION_KEY, k); } catch { /* private mode: just don't remember */ }
+    window.scrollTo(0, 0);
+  };
   const fileRef = useRef(null);
+  const chipsRef = useRef(null);
 
   // Players and teams: everyone added, plus everyone who has played before, minus deleted players.
   const deleted = useMemo(() => new Set(playerDocs.filter((p) => p.hidden).map((p) => p.id)), [playerDocs]);
@@ -227,6 +247,14 @@ export default function Board({ fb, user }) {
   const single = isDay(session);
   // MVP and Biggest night, in the smaller box under the belt.
   const awards = useMemo(() => honours(players, teams, single), [players, teams, single]);
+  // Date chips: all dates, then months, then nights (newest first).
+  const scopes = useMemo(() => ["all", ...months, ...dates], [months, dates]);
+  // Keep the selected chip in view inside its scrolling row (sideways only, so the page doesn't jump).
+  useEffect(() => {
+    const row = chipsRef.current;
+    const on = row?.querySelector(".on");
+    if (row && on) row.scrollLeft = on.offsetLeft - row.clientWidth / 2 + on.clientWidth / 2;
+  }, [session, scopes.length]);
 
   const say = (text, kind = "ok") => setMsg({ text, kind });
   const fillSlots = (m) => {
@@ -281,6 +309,7 @@ export default function Board({ fb, user }) {
   }
 
   function rematch(m) {
+    setSection("play");
     fillSlots(m);
     setNoCount(false);
     say(`Rematch set: ${m.team1.join(" & ")} vs ${m.team2.join(" & ")}. Tap the winning side.`);
@@ -418,106 +447,132 @@ export default function Board({ fb, user }) {
     error: "Lost the connection to the scorebook. Reload the page to reconnect.",
   }[status];
 
+  const hero = champs.length > 0 && (
+    <section className="honours" aria-label="Champions and awards">
+      <div className={"plate" + (champs.length > 1 ? " joint" : "")}>
+        <Confetti />
+        <Belt />
+        <div className="who">
+          <div className="lbl">{champs.length > 1 ? "Joint tag team champions" : "Tag team champions"} · {chipLabel(session)}</div>
+          <div className="names">
+            {champs.map((c, i) => (
+              <div key={c.name} className="champ">
+                {i > 0 && <span className="amp" aria-hidden="true">✦</span>}
+                <div>
+                  <div className="nm">{nicks[c.name] || c.name}</div>
+                  {nicks[c.name] && <div className="lbl">{c.name}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rec">
+          {single ? `${champs[0].w} ${champs[0].w === 1 ? "win" : "wins"}` : `${champs[0].nightsWon} ${champs[0].nightsWon === 1 ? "night" : "nights"} won`}
+          {champs.length > 1 && <span className="each"> each</span>}
+        </div>
+      </div>
+      {(awards.mvp.length > 0 || awards.bigNight.length > 0) && (
+        <div className="prizes">
+          {awards.mvp.length > 0 && (
+            <div className="prize mvp" title={`Best win % with at least 10 matches · ${scopeLabel(session)}`}>
+              <span className="emblem" aria-hidden="true">★</span>
+              <div className="txt">
+                <span className="lbl">MVP</span>
+                <span className="who">{awards.mvp.map((p) => p.name).join(", ")}</span>
+                <span className="n">{awards.mvp[0].value}</span>
+              </div>
+            </div>
+          )}
+          {awards.bigNight.length > 0 && (
+            <div className="prize fire" title={`Most wins by a team in one night · ${scopeLabel(session)}`}>
+              <span className="emblem" aria-hidden="true">🔥</span>
+              <div className="txt">
+                <span className="lbl">Biggest night</span>
+                <span className="who">{awards.bigNight.map((d) => nicks[d.name] || d.name).join(", ")}</span>
+                <span className="n">{awards.bigNight[0].value} · {awards.bigNight.map((d) => d.sub).filter((x, i, a) => a.indexOf(x) === i).join(", ")}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+
   return (
-    <div className="wrap">
-      <header>
-        <div className="brand">
-          <img className="logo" src="/logo.webp" alt="" width="88" height="111" />
-          <div className="title">
-            <span className="eyebrow">PS5 · Tag team night</span>
-            <h1><span className="r">WWE 2K23</span> <span className="b">Scoreboard</span></h1>
-            <span className="status">{statusText}{isAdmin && <span className="badge-admin">Admin</span>}</span>
-            <div className="tools">
-              <button className="tool" type="button" onClick={exportBackup}>Download backup</button>
-              {isAdmin && (
-                <>
-                  <button className="tool" type="button" onClick={() => fileRef.current?.click()}>Restore backup</button>
-                  <input ref={fileRef} type="file" accept="application/json,.json" hidden
-                    onChange={(e) => { const f = e.target.files[0]; e.target.value = ""; if (f) importBackup(f); }} />
-                </>
-              )}
-              <button className="tool" type="button" onClick={() => signOut(auth)}>Sign out</button>
+    <div className="app" data-section={section}>
+      {/* Ring ropes across the top of the page: red, white, blue. */}
+      <div className="ropes" aria-hidden="true"><i /><i /><i /></div>
+      <div className="wrap">
+        <header>
+          <div className="brand">
+            <img className="logo" src="/logo.webp" alt="" width="88" height="111" />
+            <div className="title">
+              <span className="eyebrow">PS5 · Tag team night</span>
+              <h1><span className="r">WWE 2K23</span> <span className="b">Scoreboard</span></h1>
+              <span className="status">{statusText}{isAdmin && <span className="badge-admin">Admin</span>}</span>
             </div>
           </div>
-        </div>
-        {champs.length > 0 && (
-          <div className="honours">
-            <div className={"plate" + (champs.length > 1 ? " joint" : "")}>
-              <Confetti />
-              <Belt />
-              <div>
-                <div className="lbl">{champs.length > 1 ? "Joint tag team champions" : "Tag team champions"} · {scopeLabel(session)}</div>
-                {champs.map((c) => (
-                  <div key={c.name} className="champ">
-                    <div className="nm">{nicks[c.name] || c.name}</div>
-                    {nicks[c.name] && <div className="lbl">{c.name}</div>}
-                  </div>
-                ))}
-              </div>
-              <div className="rec">
-                {single ? `${champs[0].w} ${champs[0].w === 1 ? "win" : "wins"}` : `${champs[0].nightsWon} ${champs[0].nightsWon === 1 ? "night" : "nights"} won`}
-                {champs.length > 1 && <span className="each"> each</span>}
-              </div>
-            </div>
-            {(awards.mvp.length > 0 || awards.bigNight.length > 0) && (
-              <div className="prizes">
-                {awards.mvp.length > 0 && (
-                  <div className="prize mvp" title={`Best win % with at least 10 matches · ${scopeLabel(session)}`}>
-                    <span className="emblem" aria-hidden="true">★</span>
-                    <div className="txt">
-                      <span className="lbl">MVP</span>
-                      <span className="who">{awards.mvp.map((p) => p.name).join(", ")}</span>
-                      <span className="n">{awards.mvp[0].value}</span>
-                    </div>
-                  </div>
-                )}
-                {awards.bigNight.length > 0 && (
-                  <div className="prize fire" title={`Most wins by a team in one night · ${scopeLabel(session)}`}>
-                    <span className="emblem" aria-hidden="true">🔥</span>
-                    <div className="txt">
-                      <span className="lbl">Biggest night</span>
-                      <span className="who">{awards.bigNight.map((d) => nicks[d.name] || d.name).join(", ")}</span>
-                      <span className="n">{awards.bigNight[0].value} · {awards.bigNight.map((d) => d.sub).filter((x, i, a) => a.indexOf(x) === i).join(", ")}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="tools">
+            <button className="tool" type="button" onClick={exportBackup}>Download backup</button>
+            {isAdmin && (
+              <>
+                <button className="tool" type="button" onClick={() => fileRef.current?.click()}>Restore backup</button>
+                <input ref={fileRef} type="file" accept="application/json,.json" hidden
+                  onChange={(e) => { const f = e.target.files[0]; e.target.value = ""; if (f) importBackup(f); }} />
+              </>
             )}
+            <button className="tool" type="button" onClick={() => signOut(auth)}>Sign out</button>
           </div>
-        )}
-      </header>
+        </header>
 
-      <div className="scope">
-        <label className="eyebrow" htmlFor="session">Showing</label>
-        <select id="session" value={session} onChange={(e) => setSessionSel(e.target.value)}>
-          <option value="all">All dates</option>
-          <optgroup label="Months">
-            {months.map((m) => <option key={m} value={m}>{scopeLabel(m)}</option>)}
-          </optgroup>
-          <optgroup label="Nights">
-            {dates.map((d) => <option key={d} value={d}>{fmtDate(d)}</option>)}
-          </optgroup>
-        </select>
-        <span className="note">Applies to the match card, standings, records and rivalries.</span>
+        <nav className="scope" aria-label="Showing: applies to the match card, standings, records and rivalries">
+          <span className="eyebrow">Showing</span>
+          <div className="chips" ref={chipsRef}>
+            {scopes.map((k) => (
+              <button key={k} type="button" className={"chip-btn" + (k === session ? " on" : "")} aria-pressed={k === session}
+                title={scopeLabel(k)} onClick={() => setSessionSel(k)}>{chipLabel(k)}</button>
+            ))}
+          </div>
+        </nav>
+
+        {hero}
+
+        <div className="board">
+          <div className="col">
+            <div className="sec sec-play">
+              <BookMatch matches={scored} teams={teamOpts} wrestlers={wrestlers} slots={slots} resetKey={resetKey}
+                setSlot={(k, v) => setSlots((s) => ({ ...s, [k]: v }))} setTeam={setTeam}
+                noCount={noCount} setNoCount={setNoCount} onLog={logResult} saving={saving} msg={msg}
+                pastDate={pastDate} setPastDate={setPastDate} />
+            </div>
+            <div className="sec sec-matches">
+              <MatchCard list={list} session={session} now={now} onRematch={rematch} onDelete={remove}
+                flagged={flagged} isAdmin={isAdmin} onFlag={flagResult} onPickDate={setSessionSel} nicks={nicks}
+                onVoid={(m) => resolveFlag(m, true)} onDismiss={(m) => resolveFlag(m, false)} />
+            </div>
+          </div>
+          <div className="col">
+            <div className="sec sec-stats">
+              <Stats session={session} list={list} monthWins={monthWins} teams={teams} players={players} recs={recs} moves={moves}
+                teamProf={teamProf} playerProf={playerProf} breaks={breaks} nicks={nicks} aliases={aliases} />
+            </div>
+            <div className="sec sec-roster">
+              <Roster db={db} isAdmin={isAdmin} names={names} everyone={everyone} deleted={deleted}
+                playerDocs={playerDocs} teamDocs={teamDocs} teams={teamOpts} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="board">
-        <div className="col">
-          <BookMatch matches={scored} teams={teamOpts} wrestlers={wrestlers} slots={slots} resetKey={resetKey}
-            setSlot={(k, v) => setSlots((s) => ({ ...s, [k]: v }))} setTeam={setTeam}
-            noCount={noCount} setNoCount={setNoCount} onLog={logResult} saving={saving} msg={msg}
-            pastDate={pastDate} setPastDate={setPastDate} />
-          <MatchCard list={list} session={session} now={now} onRematch={rematch} onDelete={remove}
-            flagged={flagged} isAdmin={isAdmin} onFlag={flagResult}
-            onVoid={(m) => resolveFlag(m, true)} onDismiss={(m) => resolveFlag(m, false)} />
-          <Roster db={db} isAdmin={isAdmin} names={names} everyone={everyone} deleted={deleted}
-            playerDocs={playerDocs} teamDocs={teamDocs} teams={teamOpts} />
-        </div>
-        <div className="col">
-          <Stats session={session} list={list} monthWins={monthWins} teams={teams} players={players} recs={recs} moves={moves}
-            teamProf={teamProf} playerProf={playerProf} breaks={breaks} nicks={nicks} aliases={aliases} />
-        </div>
-      </div>
+      <nav className="tabbar" aria-label="Sections">
+        {SECTIONS.map(([k, label, icon]) => (
+          <button key={k} type="button" className={section === k ? "on" : ""} aria-current={section === k ? "page" : undefined}
+            onClick={() => setSection(k)}>
+            <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg></span>
+            {label}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

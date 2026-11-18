@@ -34,12 +34,13 @@ WWE 2K23 Scoreboard (repo and internal ids still say "tag-ledger"; keep `app: "t
   - **Still W/L/E per row, by choice:** streaks, form and streak breakers use each row's own winning/losing day, not the night-winner rule. Players are still ranked by most wins. Best performer (win %, at least 3 matches). Streak breakers (`profiles.js`) are also day-based: a 2+ winning-day run ended by a losing day, credited to the opponent who beat them most that night. `src/lib/profiles.js`: all-time, cross-night stats (rank moves, profiles, streak breakers). Both take match arrays and have no React or Firebase imports, so they can be tested with `node --input-type=module -e`.
 - Components:
   - `BookMatch`: team pickers, wrestler pickers, head-to-head.
-  - `MatchCard`: list, delete window, flag button, flagged-results box. Row extras (rematch, lock status, flag, tags) are hidden by default behind a **Show ▾** checkbox menu (user's request, saved in localStorage `matchcard-show`). ✕ delete always shows in the first hour. Rows share columns via CSS subgrid where supported.
+  - `MatchCard`: one night = the matches newest first (numbers kept) in a scrolling `.mbox`, corner colour bars and a gold WIN tag; a month / all dates = `Nights` rows (winner per night via `champions()`), tapping one calls `onPickDate`. ↻ Rematch and ✕ delete (first hour) always show (user's choice, 2026-11-19); lock status, flag and tags stay behind **Show ▾** (localStorage `matchcard-show`, single night only). Flagged-results box on top. Rows share columns via CSS subgrid where supported.
   - `Roster`: add/edit/delete players, add teams with nicknames, admin-only team rename/remove (`TeamRow`).
   - `Stats`: Teams / Players / Records / Rivalries tabs, expandable profiles.
   - `Rivalries` + `lib/rivalry.js`: exact team-vs-team head-to-head over the filtered `list`, day-wise (nights they met won/lost/even, `dayStreaks` from team A's side). Player stats cover only these exact teams (user's choice). `records()` reuses `matchups()` for Biggest rivalry. Note `ledger.js` ↔ `rivalry.js` import each other; that's safe only while both use the other's exports at call time, not at module load.
   - `Login`: Group/Admin switch.
   - `PlayerSelect`: now only the wrestler dropdown.
+- **Layout (user's design, 2026-11-19):** `Board` renders header → date chips (`chipLabel`, one sideways-scrolling row replacing the old Showing dropdown) → `.honours` (full-width belt plate, MVP / Biggest night cards below sharing its width) → `.board` with `.sec-play`/`.sec-matches` (left) and `.sec-stats`/`.sec-roster` (right). At ≤860px a fixed bottom `.tabbar` shows one `.sec` at a time (`data-section` on `.app`, saved in localStorage `tag-ledger-section`); the belt, chips stay on every tab except Roster, and header tools (backup, sign out) only show on Roster. ≤1100px the board is one column. Background is the ring-canvas weave plus `.ropes`. Rematch switches to the Play tab.
 - Stats are computed client-side from all matches on each load; nothing derived is stored.
 
 ## Data model and invariants (enforced in `firestore.rules`)
@@ -79,7 +80,7 @@ Use the project skill `.claude/skills/commit/SKILL.md` (`/commit`, or `/commit p
 ## Conventions
 
 - Plain JS + JSX, function components, hooks. No TypeScript, no CSS framework, no new dependencies without asking.
-- Styles live in `src/styles.css`, using the colour tokens on `:root` (light and dark). Phone breakpoint is `max-width:560px`; the board stacks at 860px.
+- Styles live in `src/styles.css`, using the colour tokens on `:root` (light and dark). Phone breakpoint is `max-width:560px`; the tab bar takes over at 860px; the board stacks at 1100px.
 - Comments explain *why*, briefly, in the existing tone. User-facing copy is plain, friendly English; error messages say what to do next.
 - Keep the anti-cheat guarantees: don't add a way to change a score, hide that a match was backdated, or bypass the 1-hour lock, even for the admin, unless the user explicitly asks and understands the trade-off.
 - Free-tier awareness: each app open reads every match (50k reads/day limit). Avoid adding reads per render or per row.

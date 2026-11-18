@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LOCK_MS } from "../lib/firebase.js";
-import { fmtDate, isDay, sameBout, scopeLabel, wrestlersOf } from "../lib/ledger.js";
+import { champions, computeStats, fmtDate, isDay, sameBout, scopeLabel, wrestlersOf } from "../lib/ledger.js";
 
 const LockIcon = () => (
   <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4.5V3a3 3 0 0 1 6 0v1.5h.5v5.5h-7V4.5zm1.5 0h3V3a1.5 1.5 0 0 0-3 0z" /></svg>
@@ -42,9 +42,9 @@ function Flagged({ flagged, isAdmin, onVoid, onDismiss }) {
 }
 
 // What each row shows besides the teams. Chosen in the "Show" dropdown, all off by default,
-// remembered per browser. The ✕ delete button (first hour only) is always shown so mistakes can be fixed.
+// remembered per browser. ↻ Rematch (user's choice, 2026-11-19) and the ✕ delete button (first hour only)
+// are always shown.
 const SHOW = [
-  ["rematch", "Rematch button"],
   ["lock", "Lock status (time left / Locked)"],
   ["flag", "Flag button ⚑"],
   ["tags", "Tags (Rematch, No count, Flagged, Voided, date)"],
@@ -78,7 +78,44 @@ function ShowMenu({ show, setShow }) {
   );
 }
 
-export default function MatchCard({ list, session, now, onRematch, onDelete, flagged, isAdmin, onFlag, onVoid, onDismiss }) {
+// A month or all dates: one row per night (newest first) with who won it. Tapping a night opens its match card.
+function Nights({ list, nicks, onPickDate }) {
+  const nights = useMemo(() => {
+    const by = {};
+    list.forEach((m) => (by[m.date] ||= []).push(m));
+    return Object.keys(by).sort().reverse().map((date) => {
+      const champs = champions(computeStats(by[date]).teams);
+      return { date, n: by[date].length, champs, wins: champs[0]?.w || 0 };
+    });
+  }, [list]);
+  return (
+    <ul className="nights">
+      {nights.map((x) => {
+        const [y, mo, d] = x.date.split("-").map(Number);
+        const dm = [d, new Date(y, mo - 1, d).toLocaleDateString(undefined, { month: "short" })];
+        return (
+          <li key={x.date}>
+            <button type="button" className="night" onClick={() => onPickDate(x.date)} aria-label={`Open ${fmtDate(x.date)}`}>
+              <span className="date"><span className="d">{dm[0]}</span><span className="m">{dm[1]}</span></span>
+              <span className="nw">
+                {x.champs.length ? (
+                  <span className="win-by"><span className="crown" aria-hidden="true">♛</span>
+                    <span className="champ-name">{x.champs.map((c) => nicks[c.name] || c.name).join(" + ")}</span></span>
+                ) : <span className="muted">No counted matches</span>}
+                <span className="sub">{x.champs.length ? `Won the night · ${x.wins} ${x.wins === 1 ? "win" : "wins"}` : "\u00a0"}</span>
+              </span>
+              <span className="sub cnt">{x.n} {x.n === 1 ? "match" : "matches"}</span>
+              <span className="go" aria-hidden="true">›</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export default function MatchCard({ list, session, now, onRematch, onDelete, flagged, isAdmin, onFlag, onVoid, onDismiss, onPickDate, nicks = {} }) {
+  const single = isDay(session);
   const [armed, setArmed] = useState(null);
   const [show, setShowState] = useState(loadShow);
   const setShow = (next) => {
@@ -102,11 +139,13 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
       <div className="panel-head">
         <h2 id="cardH">Match card</h2>
         <div className="head-right">
-          <span className="eyebrow">{scopeLabel(session)}</span>
-          <ShowMenu show={show} setShow={setShow} />
+          <span className="eyebrow">{scopeLabel(session)} · {list.length} {list.length === 1 ? "match" : "matches"}{single && list.length > 1 ? " · newest first" : ""}</span>
+          {single && <ShowMenu show={show} setShow={setShow} />}
         </div>
       </div>
       <Flagged flagged={flagged} isAdmin={isAdmin} onVoid={onVoid} onDismiss={onDismiss} />
+      <div className="mbox">
+      {!single && list.length > 0 ? <Nights list={list} nicks={nicks} onPickDate={onPickDate} /> : (
       <ol className="matches">
         {!list.length && (
           <li className="empty">
@@ -114,16 +153,16 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
               : "No matches logged yet. Pick two teams above and tap the winning side to log the first one."}
           </li>
         )}
-        {list.map((m, i) => {
+        {list.map((m, i) => [m, i]).reverse().map(([m, i]) => {
           const left = m.ca == null ? LOCK_MS : LOCK_MS - (now - m.ca);
           const t1 = m.team1.join(" & ");
           const t2 = m.team2.join(" & ");
           return (
             <li key={m.id} className={"match" + (m.counted ? "" : " nc")}>
               <span className="n">{i + 1}</span>
-              <span className={"team t1" + (m.winner === 1 ? " won" : "")}><Team m={m} side={1} /></span>
+              <span className={"team t1" + (m.winner === 1 ? " won" : "")}><span className="tn"><Team m={m} side={1} /></span>{m.winner === 1 && <span className="wtag">Win</span>}</span>
               <span className="v">VS</span>
-              <span className={"team t2" + (m.winner === 2 ? " won" : "")}><Team m={m} side={2} /></span>
+              <span className={"team t2" + (m.winner === 2 ? " won" : "")}>{m.winner === 2 && <span className="wtag">Win</span>}<span className="tn"><Team m={m} side={2} /></span></span>
               <span className="tail">
                 {show.tags && (
                   <>
@@ -134,9 +173,7 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
                     {!isDay(session) && <span className="chip">{m.date.slice(5)}</span>}
                   </>
                 )}
-                {show.rematch && (
-                  <button className="rm" type="button" aria-label={`Rematch: ${t1} vs ${t2}`} onClick={() => onRematch(m)}>↻ Rematch</button>
-                )}
+                <button className="rm" type="button" title="Rematch: book the same teams again" aria-label={`Rematch: ${t1} vs ${t2}`} onClick={() => onRematch(m)}>↻<span className="rm-l"> Rematch</span></button>
                 {left <= 0 ? (
                   <>
                     {show.lock && <span className="chip lk" title="Locked. Matches can't be changed after 1 hour."><LockIcon />Locked</span>}
@@ -160,6 +197,8 @@ export default function MatchCard({ list, session, now, onRematch, onDelete, fla
           );
         })}
       </ol>
+      )}
+      </div>
     </section>
   );
 }

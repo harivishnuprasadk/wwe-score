@@ -27,6 +27,16 @@ export function monthList(dates, today = todayStr()) {
   return [...set].sort().reverse();
 }
 
+// Short label for the date chips: "17 Nov" or "November", with the year only when it isn't this year.
+export function chipLabel(scope) {
+  if (scope === "all") return "All dates";
+  const [y, m, d] = scope.split("-").map(Number);
+  const year = y !== new Date().getFullYear() ? { year: "numeric" } : {};
+  return isDay(scope)
+    ? new Date(y, m - 1, d).toLocaleDateString(undefined, { day: "numeric", month: "short", ...year })
+    : new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", ...year });
+}
+
 export function scopeLabel(scope) {
   if (scope === "all") return "All dates";
   if (isDay(scope)) return fmtDate(scope);

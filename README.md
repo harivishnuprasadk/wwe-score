@@ -29,7 +29,7 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - **Team picker:** tap it and type to search by nickname or player name. The most played teams are listed first, with how many matches each has played.
 - **Head to head:** shows today's and all-time record between the two teams before you log.
 - **No count:** log a match that's left out of the standings, e.g. a warm-up.
-- **Rematch:** one tap sets up the same teams again.
+- **Rematch:** the ↻ button on every match sets up the same teams again.
 - **1-hour delete window:** fix a mistake by deleting and re-logging. After an hour the match is locked for good.
 - **Flag a result:** tap ⚑ on a locked match with a reason. The admin then voids it or lets it stand.
 
@@ -60,6 +60,7 @@ Score tracker for WWE 2K23 tag team nights on PS5. Log who beat whom, and everyo
 - **Live updates:** every phone sees new results instantly.
 - **Backups:** download all matches, players and teams as one file; restore adds back anything missing.
 - **Works like an app** when added to a phone's home screen, with light and dark mode.
+- **Layout:** on phones and small tablets a bottom tab bar switches between **Play** (book a match), **Matches**, **Stats** and **Roster** (players and teams, plus Download backup and Sign out). The belt and award cards sit at the top of every tab except Roster. On laptops and bigger screens everything shows at once as a dashboard: Book a match and the Match card on the left, Stats and Players & teams on the right. The background is a ring canvas with red, white and blue ropes across the top.
 
 ---
 
@@ -238,14 +239,15 @@ Phones pick up the new version the next time the page is opened or refreshed. On
    - **Missed logging one?** Change **Match date** at the top of Book a match to that night first. It's saved under that date (marked as added later behind the scenes). Tap **Back to today** afterwards.
 4. If you got it wrong, tap ✕ on the match within **1 hour** to delete it, then log it again. After an hour it's locked: turn on **Flag button** under **Show ▾**, then tap **⚑** on it to flag it for the admin.
 5. **↻ Rematch** sets up the same teams again.
-   - The Match card shows just the teams by default. Tap **Show ▾** (top right of the Match card) and tick what you want in each row: **Rematch button**, **Lock status** (minutes left or Locked), **Flag button ⚑**, **Tags** (Rematch, No count, Flagged, Voided, date). Each phone remembers its own choice. The ✕ delete button always shows during a match's first hour.
+   - The Match card lists a night's matches **newest first** inside its own scrolling box. Each side shows its corner colour (red or blue), and the winner has a gold **WIN** tag. **↻ Rematch** and the ✕ delete button (first hour only) always show. Tap **Show ▾** (top right) to add **Lock status** (minutes left or Locked), **Flag button ⚑** and **Tags** (Rematch, No count, Flagged, Voided). Each phone remembers its own choice.
+   - With a **month** or **All dates** selected, the Match card shows one row per night with who won it; tap a night to open its matches.
 6. **No count** logs the match but leaves it out of the standings.
 
 **Stats panel:**
-- **Showing** (at the top) picks **All dates**, a **month** (every month from October 2026 to now is listed, even before anything's played in it), or one **night**. It controls the match card, standings, records and rivalries.
+- **Showing** (the row of chips at the top; swipe it sideways for older nights) picks **All dates**, a **month** (every month from October 2026 to now is listed, even before anything's played in it), or one **night**. It controls the belt, the awards, the match card, standings, records and rivalries.
 - **Teams tab:** standings, ▲▼ rank movement (with All dates selected) and form. Tap a team to see its nemesis, nights played, and best and worst nights.
 - **Players tab:** player standings. Tap a player to see their best partner, most-played partner and attendance.
-- **Records tab:** best performer, best day, winning-day and losing-day streaks, match counts, busiest month, best month, matches per month, biggest rivalry and streak breakers. These follow the **Showing** dropdown.
+- **Records tab:** best performer, best day, winning-day and losing-day streaks, match counts, busiest month, best month, matches per month, biggest rivalry and streak breakers. These follow the **Showing** chips.
 - **Rivalries tab:** choose two teams to see their head-to-head, nights won, day streak and each player's record in that rivalry.
 
 **Players & teams → Edit** (any login): set a player's **alias** (shown as "Alias (Name)" in stats), or **Delete** them. A deleted player disappears from the team and booking lists, but their past matches and stats stay. Bring them back from **Deleted players**, or by adding the same name again.
