@@ -203,7 +203,8 @@ export function monthlyWins(rows) {
 }
 
 // The two awards under the belt, for the selected dates.
-// MVP: best win % among players with at least MVP_MIN matches (ties share it); none until someone qualifies.
+// MVP: best win % among players with at least MVP_MIN matches (ties share it). Only someone who won more than
+// they lost counts (user's choice, 2026-11-18), so an all-even night like 6–6 everywhere has no MVP.
 // Biggest night: the most wins any team had in one night (ties share it); only when more than one night is on view.
 export const MVP_MIN = 10;
 export function honours(players, teams, single) {
@@ -211,7 +212,7 @@ export function honours(players, teams, single) {
   // Compare win % exactly (cross-multiplied) so equal records really tie.
   const better = (a, b) => a.w * (b.w + b.l) - b.w * (a.w + a.l);
   const best = ok.reduce((b, p) => (!b || better(p, b) > 0 ? p : b), null);
-  const mvp = best ? ok.filter((p) => better(p, best) === 0).sort((a, b) => b.w - a.w || a.name.localeCompare(b.name)) : [];
+  const mvp = best && best.w > best.l ? ok.filter((p) => better(p, best) === 0).sort((a, b) => b.w - a.w || a.name.localeCompare(b.name)) : [];
   let big = [];
   if (!single) {
     const nights = teams.flatMap((t) => t.days.map((d) => ({ name: t.name, ...d })));

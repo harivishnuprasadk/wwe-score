@@ -382,8 +382,11 @@ td.formcell{white-space:nowrap} td.formcell .trend{margin-left:4px}
   .plate .rec{flex-basis:100%;text-align:right}
 }
 .plate .rec .each{font-weight:600;opacity:.8}
-.prizes{display:flex;flex-wrap:wrap;gap:8px;padding:6px;border-radius:10px;border:1px solid var(--gold);background:var(--apron)}
-.prize{display:flex;flex-direction:column;gap:1px;padding:5px 10px;border-radius:7px;background:var(--gold-plate);color:var(--gold-ink);min-width:0;max-width:240px}
+/* Gold stays the belt's alone: MVP is blue (the player award), Biggest night is red (fire). */
+.prizes{display:flex;flex-wrap:wrap;gap:8px;padding:6px;border-radius:10px;border:1px solid var(--rule);background:var(--apron)}
+.prize{display:flex;flex-direction:column;gap:1px;padding:5px 10px;border-radius:7px;border:1px solid;border-left-width:4px;min-width:0;max-width:240px}
+.prize.mvp{background:var(--blue-soft);color:var(--blue);border-color:var(--blue)}
+.prize.fire{background:var(--red-soft);color:var(--red);border-color:var(--red)}
 .prize .lbl{font-family:var(--f-data);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .prize .who{font-family:var(--f-display);font-weight:700;font-size:16px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
 .prize .n{font-family:var(--f-data);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
